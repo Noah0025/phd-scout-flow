@@ -1,249 +1,95 @@
 # Quickstart · AI Agent Setup Guide
 
-> **Audience**: AI coding agent (Claude Code / Cursor / Cline / Codex / other).
-> **Goal**: Install phd-scout-flow and run first configuration.
-> **Approach**: Read this entire file first. Execute tasks in order. Ask user only at marked checkpoints.
+> **Audience**: AI coding agent (Claude Code / Cursor / Cline / Codex / 其他)
+> **Goal**: 把 phd-scout-flow 装好并跑 `/phd-scout-init`
+> **Approach**: 4 个 Task 按序执行，只在 checkpoint 问用户。
 
 ---
 
-## Pre-flight · Detect environment + locate repo
+## Task 1 · 收集输入
 
-### 0a. Detect AI tool
+询问：
 
-- Claude Code -> `tool = claude_code`
-- Cursor -> `tool = cursor`
-- Cline -> `tool = cline`
-- Codex -> `tool = codex`
-- Otherwise -> `tool = other`
+> "用来抽关键词的资料路径？建议二选一：
+> A. capability-network vault 绝对路径（推荐）
+> B. fallback：CV / transcript / SoP 等任意组合的绝对路径
+> 也可两个都给。"
 
-If unclear, ask:
+存：
 
-> Which AI tool are you using to set this up? (Claude Code / Cursor / Cline / Codex / other)
-
-### 0b. Locate this repo
-
-Set `REPO_PATH` to the absolute path containing this `QUICKSTART.md`.
-
-Verify:
-
-```bash
-[ -f "$REPO_PATH/QUICKSTART.md" ] || echo ERROR
+```
+CAPABILITY_VAULT  # 可能为空
+FALLBACK_PATHS    # 可能为空
 ```
 
----
-
-## Task 1 · Collect inputs
-
-Ask:
-
-> Do you have an obsidian-capability-network vault to use as keyword source? If yes, paste its absolute path. If no, paste one or more fallback files/folders such as CV, transcript, SoP, paper list, or project descriptions.
-
-Save:
-
-```bash
-export CAPABILITY_VAULT="<path-or-empty>"
-export FALLBACK_PATHS="<paths-or-empty>"
-```
-
-At least one source must exist.
+至少一个非空。两个都空 → 让用户先备齐再回来。
 
 ---
 
-## Task 2 · Create local data directory
+## Task 2 · 准备本地环境
 
 ```bash
 mkdir -p "$HOME/.phd-scout/logs" "$HOME/.phd-scout/templates"
-```
-
-Verify:
-
-```bash
-[ -d "$HOME/.phd-scout" ] && [ -d "$HOME/.phd-scout/logs" ] && [ -d "$HOME/.phd-scout/templates" ]
-```
-
----
-
-## Task 3 · Install templates
-
-```bash
 cp "$REPO_PATH"/templates/* "$HOME/.phd-scout/templates/"
 ```
 
-Verify:
-
-```bash
-ls "$HOME/.phd-scout/templates/"
-```
-
-Expected files:
-
-- `phd-profile.yaml.template`
-- `phd-keywords.md.template`
-- `phd-eval-template.md`
-- `phd-eval-criteria.md`
-- `notion-schema-inbox.md`
-- `notion-schema-keywords.md`
-- `scout-log-example.yaml`
+验证：`ls ~/.phd-scout/templates/` 应见 4+ 文件（profile / keywords / eval / notion-schema-inbox）。
 
 ---
 
-## Task 4 · Install skills
+## Task 3 · 装 skill
 
-Branch by `tool`.
+按你所在 AI 工具：
 
-### tool == claude_code
+### Claude Code
 
 ```bash
 mkdir -p "$HOME/.claude/skills"
 cp -r "$REPO_PATH"/skills/* "$HOME/.claude/skills/"
 ```
 
-Tell user to restart Claude Code if slash commands are not visible.
+重启 Claude Code 若 slash command 未识别。
 
-### tool == cursor
+### Cursor / Cline / Codex / 其他
 
-```bash
-mkdir -p "$REPO_PATH/.cursor/rules"
-for skill_dir in "$REPO_PATH"/skills/*/; do
-  skill_name=$(basename "$skill_dir")
-  out="$REPO_PATH/.cursor/rules/${skill_name}.mdc"
-  {
-    echo "---"
-    echo "description: ${skill_name}"
-    echo "alwaysApply: true"
-    echo "---"
-    echo
-    cat "$skill_dir/SKILL.md"
-  } > "$out"
-done
-```
-
-Tell user to open this repo or their working folder in Cursor.
-
-### tool == cline
-
-```bash
-out="$REPO_PATH/.clinerules"
-echo "# phd-scout-flow · merged skills" > "$out"
-for skill_dir in "$REPO_PATH"/skills/*/; do
-  skill_name=$(basename "$skill_dir")
-  echo >> "$out"
-  echo "---" >> "$out"
-  echo >> "$out"
-  echo "# === SKILL: ${skill_name} ===" >> "$out"
-  echo >> "$out"
-  cat "$skill_dir/SKILL.md" >> "$out"
-done
-```
-
-### tool == codex
-
-Codex can read repo instructions from `AGENTS.md`, but this repo does not ship one. For setup, tell the user to invoke the skill by naming the file, for example:
-
-```
-Read skills/phd-scout-init/SKILL.md and run /phd-scout-init
-```
-
-If the user wants persistent Codex instructions, create them outside this repo or in their own workspace.
-
-### tool == other
-
-Tell user to load the relevant `skills/*/SKILL.md` content into their AI tool when invoking that command.
+把 `skills/phd-scout-init/SKILL.md` 和 `skills/phd-scout/SKILL.md` 内容加入你工具的 rules / instructions 文件（如 `.cursor/rules/`, `.clinerules`, `AGENTS.md`）。Codex 用户：直接 `Read skills/phd-scout-init/SKILL.md and run it`。
 
 ---
 
-## Task 5 · Configure Notion MCP
+## Task 4 · 配 Notion + 跑 init
 
-Read:
+1. 按 [docs/notion-mcp-setup.md](./docs/notion-mcp-setup.md) 装 Notion MCP（约 5 分钟）
+2. 跑 `/phd-scout-init`，它会：
+   - 抽关键词 + 让你审
+   - 跑 6 项配置问卷
+   - 半自动建 Notion Inbox DB
+   - 写 `profile.yaml` 和 `keywords.md`
 
-```bash
-cat "$REPO_PATH/docs/notion-mcp-setup.md"
-```
-
-Ask:
-
-> Do you already have a Notion Inbox database for PhD results? If yes, paste the database id. If no, create one using templates/notion-schema-inbox.md, then paste the database id.
-
-If Notion MCP is not ready, continue with local setup and mark Notion as pending.
-
----
-
-## Task 6 · Run first configuration
-
-Invoke:
-
-```
-/phd-scout-init
-```
-
-The skill must:
-
-1. Read capability-network vault or fallback files.
-2. Extract L0 seed.
-3. Expand L1/L2.
-4. Run the 6 dimensional questionnaire.
-5. Write `~/.phd-scout/profile.yaml`.
-6. Write `~/.phd-scout/keywords.md`.
-7. Insert Notion Inbox database id if available.
-
-Verify:
+### 自检
 
 ```bash
-[ -f "$HOME/.phd-scout/profile.yaml" ] || echo "missing profile"
-[ -f "$HOME/.phd-scout/keywords.md" ] || echo "missing keywords"
+[ -s "$HOME/.phd-scout/profile.yaml" ] && echo "profile OK"
+[ -s "$HOME/.phd-scout/keywords.md" ] && echo "keywords OK"
+grep -q "^## Keywords" "$HOME/.phd-scout/keywords.md"
 ```
 
 ---
 
-## Task 7 · Self-check
-
-Check local files:
-
-```bash
-test -s "$HOME/.phd-scout/profile.yaml"
-test -s "$HOME/.phd-scout/keywords.md"
-grep -q "threshold_hint:" "$HOME/.phd-scout/profile.yaml"
-grep -q "^## A" "$HOME/.phd-scout/keywords.md" && grep -q "^## B" "$HOME/.phd-scout/keywords.md" && grep -q "^## C" "$HOME/.phd-scout/keywords.md"
-```
-
-Optional smoke test:
+## 完成
 
 ```
-/phd-scout
-```
-
-If Notion is pending, `/phd-scout` should still write a local log and print a terminal report.
-
----
-
-## Task 8 · Report completion
-
-Output:
-
-```
-phd-scout-flow installed.
-
-Repo: <REPO_PATH>
-Tool: <tool>
-Local home: ~/.phd-scout/
-Profile: ~/.phd-scout/profile.yaml
-Keywords: ~/.phd-scout/keywords.md
-Notion Inbox: configured / pending
-
-Next:
-- /phd-scout
-- Fill Feedback in Notion Inbox
-- /phd-keyword-optimize
+下一步：
+  /phd-scout                    # 跑第一次搜索（手动）
+  /phd-scout --review-feedback  # 攒够 Notion 反馈后跑（≥3 条要/不要）
 ```
 
 ---
 
 ## Troubleshooting
 
-| Symptom | Likely cause | Fix |
-|---|---|---|
-| Skill not recognized | Tool did not load local skill files | Restart tool or paste SKILL.md directly |
-| No keyword source | Missing vault/fallback path | Provide CV, transcript, SoP, or capability vault |
-| Notion write fails | MCP not authenticated or database id wrong | Re-run OAuth and verify database id |
-| Too many weak results | Keywords too broad | Add negative feedback and run optimize |
-| No results | Keywords too narrow or shape disabled | Review profile and enabled opportunity types |
+| 卡点 | 原因 / 修法 |
+|---|---|
+| Skill not recognized | 重启 AI 工具 / 检查 skill 路径 |
+| No keyword source | 提供 CV / transcript / SoP 或 capability vault |
+| Notion 写入失败 | OAuth 未完成 / database id 错 / 字段被删 — 报错时检查 |
+| 太多 / 太少结果 | 反馈循环慢慢校准 |
