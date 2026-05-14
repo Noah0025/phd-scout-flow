@@ -289,7 +289,27 @@ discovered_sources（日志） → 用户在 Notion 标"要" ≥3 次该源候�
 - `templates/phd-eval-template.md`
 - `templates/phd-eval-criteria.md`
 
-每个启用形态最多选择 1 条最佳候选。若某形态全部为 C 或被排除，记录“无合格新候选”。
+### 写入决策（按 max_total_written_per_scout）
+
+不是”每形态各写 1 条”——按 `search.max_total_written_per_scout`（默认 1）跨形态选总 N 条最佳：
+
+```
+1. 把所有形态通过 Step 4-5 的候选合并到一个池
+2. 按匹配分降序排序（pi_cold_email 用其特殊评级规则换算同等分）
+3. 取前 N 条（N = max_total_written_per_scout）
+4. 约束：单形态 ≤ max_written_per_type（默认 1，防一类占满）
+5. 若某形态被分配 0 条 → 日志记”该形态有候选但未入选”，不报”无合格新候选”
+```
+
+写入数量与噪音的权衡（用户在 profile 中调）：
+
+| N | 体验 | 反馈难度 |
+|---|---|---|
+| 1（推荐） | 每次最优 1 条，认真读、给精准反馈 | 低 |
+| 2-3 | 多看几个选项 | 中 |
+| ≥5 | 信息丰富但 Inbox 淹没，反馈疲劳，optimize 信号变弱 | 高 |
+
+若全部候选都为 C 或被排除 → 报”无合格新候选”，不强行写入。
 
 评估必须包含：
 

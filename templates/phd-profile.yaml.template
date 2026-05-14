@@ -34,14 +34,16 @@ questionnaire:
     earliest: ""
     latest: ""
   opportunity_types:
+    # 默认只启用 2 类，由 init 问卷让用户勾选其他。不主动全开。
     enabled:
       - project_position
-      - pi_open_call       # 找招聘公告（被动）
-      - pi_cold_email      # 先找 PI 后陶瓷（主动），输出 PI 卡片不是岗位卡片
-      - cdt_dtp
-      - msca_dn
-      - outbound_scholarship
-      - industrial_phd
+      - pi_open_call
+      # 以下默认关闭，init 问卷可勾选加入：
+      # - pi_cold_email      # 先找 PI 后陶瓷（主动），输出 PI 卡片不是岗位卡片
+      # - cdt_dtp
+      # - msca_dn
+      # - outbound_scholarship
+      # - industrial_phd
     priority:
       # 预算分配优先级。focus 先跑，low 仅在预算有余时跑。
       # 注意：priority 里的形态必须也在 enabled 列表中，否则忽略。
@@ -71,7 +73,11 @@ search:
 
   # === 候选写入控制 ===
   max_candidates_per_type: 10
-  max_written_per_type: 1
+  max_written_per_type: 1            # 单形态写入上限（防一类占满）
+  max_total_written_per_scout: 1     # ⭐ 一次 scout 最多写入 Notion 的总条数
+  # 推荐值 1：每次只看最优 1 条，反馈精准。
+  # 调到 3-5：能看更多选项，但每条反馈成本上升。
+  # 调到 ≥7：等同每形态 1 条，Inbox 会快速淹没，反馈疲劳。
 
   # === 去重 ===
   dedupe_window_days: 180          # 已写入 Notion 的候选 N 天内不重写

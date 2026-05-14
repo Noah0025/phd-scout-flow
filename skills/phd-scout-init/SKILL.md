@@ -228,10 +228,12 @@ mkdir -p "$HOME/.phd-scout/logs" "$HOME/.phd-scout/templates"
 - Notion Inbox database id 占位
 - 6 维问卷结果（含可选第 7 维 `preferred_sources`）
 - match threshold
-- enabled opportunity types
+- enabled opportunity types（默认仅 focus 2 类，用户在问卷里勾选其他）
+- opportunity_types.priority（focus / normal / low 三层）
 - funding rule
 - language rule
 - keyword source
+- search.max_total_written_per_scout（默认 1，单独问用户："默认每次写入 Notion 1 条最优候选。要看更多可调 3-5；超过 5 反馈会疲劳。"）
 
 `keywords.md` 必须包含：
 
