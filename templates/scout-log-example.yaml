@@ -1,0 +1,57 @@
+# Example only. The AI may change this schema.
+# Required idea: keep enough evidence to explain which keywords hit, which missed,
+# and why each candidate passed or failed.
+
+run:
+  date: "YYYY-MM-DD"
+  profile: "~/.phd-scout/profile.yaml"
+  keywords: "~/.phd-scout/keywords.md"
+  match_threshold: 0.6
+
+keywords_used:
+  must:
+    - "[your_core_method]"
+  nice:
+    - "[your_problem_domain]"
+    - "[related_subproblem]"
+  exclude:
+    - "[too_broad_keyword]"
+
+queries:
+  - opportunity_type: "project_position"
+    query: "PhD [your_core_method] [your_problem_domain] funded"
+    source: "web"
+    results_found: 8
+
+candidates:
+  - dedupe_key: "[normalized_title]__[normalized_institution]"
+    title: "[phd_position_title]"
+    institution: "[institution_name]"
+    country: "[country]"
+    opportunity_type: "project_position"
+    url: "https://example.edu/phd-position"
+    deadline: "YYYY-MM-DD"
+    matched_keywords:
+      must:
+        - "[your_core_method]"
+      nice:
+        - "[your_problem_domain]"
+    missing_keywords:
+      nice:
+        - "[related_subproblem]"
+    score:
+      hard: "1/2"
+      support: "1/2"
+      total_percent: 67
+    decision:
+      status: "written_to_notion"
+      priority: "B"
+      reason: "direction matched; funding needs confirmation"
+    notion:
+      page_id: "[notion_page_id]"
+      written: true
+
+excluded:
+  - title: "[excluded_title]"
+    url: "https://example.edu/closed"
+    reason: "deadline passed"
