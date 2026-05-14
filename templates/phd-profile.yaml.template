@@ -47,6 +47,13 @@ questionnaire:
     rule: "english_only"
     accepted_languages: ["English"]
 
+preferred_sources:
+  # 可选。留空则只走 6 类形态的默认主源（EURAXESS / FindAPhD 等）。
+  # 填了机构 / 站点后，每类形态主搜完会追加一轮 `site:` 或 `[机构名]` 拼接搜索。
+  institutions: [] # 例: ["UFZ", "ETH Zurich", "TU Delft"]
+  sites: []        # 例: ["ufz.de", "ethz.ch"]，用于 site: 操作符
+  regions_focus: [] # 例: ["Germany", "Netherlands"]，强化区域信号
+
 search:
   max_candidates_per_type: 10
   max_written_per_type: 1

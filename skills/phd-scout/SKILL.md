@@ -35,6 +35,9 @@ TEMPLATES  = $SCOUT_HOME/templates
    - must keywords
    - nice keywords
    - exclude keywords
+4. 读取可选字段 `preferred_sources`：
+   - `institutions` / `sites` / `regions_focus` 任一非空 → 启用追加搜索（Step 3.5）
+   - 全部为空 → 跳过追加搜索，只走默认主源
 
 缺失 `profile.yaml` 或 `keywords.md` 时，停止并提示先运行 `/phd-scout-init`。
 
@@ -100,6 +103,20 @@ TEMPLATES  = $SCOUT_HOME/templates
 - language signal
 - matched keywords
 - missing keywords
+
+---
+
+## Step 3.5 — 偏好源追加搜索（仅当 `preferred_sources` 非空）
+
+对每个启用形态，主搜完后追加一轮：
+
+- `institutions` 非空 → 对每个机构拼接 `[机构名] PhD [must_keyword]` 跑一次
+- `sites` 非空 → 对每个 site 跑 `site:[domain] PhD [must_keyword]`
+- `regions_focus` 非空 → 对每个区域拼接 `[country/region] PhD [must_keyword] funded`
+
+追加搜索的候选合并进主搜候选池，统一进入 Step 4 过滤。匹配规则不变。
+
+不要把"机构名"或"site"本身当作关键词命中——它们只用于扩大搜索覆盖，不计入 60% 匹配分。
 
 ---
 

@@ -80,15 +80,17 @@ ls "$HOME/.phd-scout/logs"/scout-*.yaml 2>/dev/null
 - 常出现的形态
 - 常出现的国家或地区
 - 常出现的 funding 信号
+- 常出现的机构 / 站点 domain（用于建议加进 `preferred_sources`）
 - 用户备注中反复出现的偏好
 
 ### 负向样本
 
 统计：
 
-- 重复出现且导致“不要”的关键词
+- 重复出现且导致”不要”的关键词
 - 重复出现的地区 / 形态 / funding 问题
 - 搜索命中但实际不相关的词
+- 出现 ≥3 次”不要”的机构（用于建议从 `preferred_sources` 移除或加排除）
 
 同一负向特征出现 ≥3 次，才列入降级或排除候选。
 
@@ -115,6 +117,15 @@ ls "$HOME/.phd-scout/logs"/scout-*.yaml 2>/dev/null
 | 项目 | 当前 | 建议 | 证据 | 风险 |
 |---|---|---|---|---|
 | [keyword_or_feature] | nice | exclude | 负向样本 N 次 | 可能误杀相邻方向 |
+
+### 表 4（仅当机构信号显著时）：建议调整 preferred_sources
+
+| 机构 / 站点 / 区域 | 当前 | 建议 | 证据 |
+|---|---|---|---|
+| [institution_or_site] | 不在 list | 加进 institutions | 正向样本 ≥3 次 |
+| [institution_or_site] | 在 institutions | 移除 | 负向样本 ≥3 次 |
+
+若无显著机构信号，跳过这张表。
 
 ---
 

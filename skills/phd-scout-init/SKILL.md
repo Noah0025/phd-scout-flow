@@ -144,8 +144,22 @@ mkdir -p "$HOME/.phd-scout/logs" "$HOME/.phd-scout/templates"
 | 形态偏好 | project_position, pi_open_call | 可多选 6 类形态 |
 | 资金硬门槛 | funded_only | funded_only / accept_self_funded / already_funded |
 | 语言 | english_only | english_only / accepts_other_languages |
+| 偏好源（可选） | 留空 | 填心仪的机构名 / 站点 domain / 国家区域 |
 
 匹配阈值默认 `0.6`，可在 `0.4-0.8` 内调整。
+
+**偏好源（第 7 维）问法**：
+
+> "有没有特别想盯紧的机构、站点或区域？例如 'UFZ', 'ETH Zurich', 'Germany'。
+> 留空也行——只用默认 6 类主源搜（EURAXESS / FindAPhD / jobs.ac.uk 等）。"
+
+收集为三类（用户可任填一项或全填）：
+
+- `institutions`: 机构名列表
+- `sites`: 站点 domain 列表（用于 `site:` 操作符）
+- `regions_focus`: 区域名列表（强化国家信号）
+
+填了的话，`/phd-scout` 每次会在默认主源之外**追加搜索**这些偏好源，扩大覆盖。
 
 ---
 
@@ -172,7 +186,7 @@ mkdir -p "$HOME/.phd-scout/logs" "$HOME/.phd-scout/templates"
 
 - profile version
 - Notion Inbox database id 占位
-- 6 维问卷结果
+- 6 维问卷结果（含可选第 7 维 `preferred_sources`）
 - match threshold
 - enabled opportunity types
 - funding rule
