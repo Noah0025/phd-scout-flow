@@ -9,7 +9,7 @@
 一套 AI workflow，帮你把"找 PhD"从**一次次手动 Google** 变成**可累积、可反馈的系统**：
 
 ```
-能力网络  →  关键词库  →  6 维问卷校准  →  搜索 + 初评  →  Notion 反馈  →  关键词库自动调整
+能力网络  →  关键词库  →  配置问卷校准  →  搜索 + 初评  →  Notion 反馈  →  关键词库自动调整
                                                                               ↑
                                                                           闭环
 ```
@@ -69,7 +69,8 @@
 | 形态 | 典型来源 | 适合谁 |
 |---|---|---|
 | 项目制岗位 | EURAXESS / FindAPhD / jobs.ac.uk | 项目+资金已 listed，省心 |
-| PI Open Call | 院系页 / Scholar PI 主页 | 自带方向，主动套磁 |
+| PI Open Call | 院系页 / Scholar PI 主页 | 自带方向，看招聘公告 |
+| PI Cold Email | Google Scholar / 实验室主页 | 先找 PI 后陶瓷，无现成岗位也试 |
 | CDT / DTP | UKRI / 各 CDT 站 | 英国 cohort 制 |
 | MSCA Doctoral Network | EURAXESS MSCA filter | 跨国 + 工业合作 |
 | 国家奖学金 outbound | CSC / DAAD / Chevening | 自带钱找 PI |
@@ -117,7 +118,7 @@ phd-scout-flow/
 
 ```
 ~/.phd-scout/
-├── profile.yaml        # 6 维问卷结果
+├── profile.yaml        # 配置问卷结果
 ├── keywords.md         # 关键词库
 └── logs/               # 每次搜索的归因日志
 ```

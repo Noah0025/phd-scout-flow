@@ -1,6 +1,6 @@
 ---
 name: phd-scout-init
-description: 首次配置 phd-scout-flow。从 capability-network vault 或 fallback 资料抽取 L0 seed，扩展 L1/L2 关键词，跑 6 维问卷，写入 ~/.phd-scout/profile.yaml 与 keywords.md，并引导创建 Notion Inbox。用法：/phd-scout-init
+description: 首次配置 phd-scout-flow。从 capability-network vault 或 fallback 资料抽取 L0 seed，扩展 L1/L2 关键词，跑配置问卷（9 项），写入 ~/.phd-scout/profile.yaml 与 keywords.md，并引导创建 Notion Inbox。用法：/phd-scout-init
 ---
 
 # PhD Scout Init
@@ -163,23 +163,23 @@ fi
 
 ---
 
-## Step 4 — 6 维问卷
+## Step 4 — 配置问卷（9 项）
 
 必须逐项展示给用户确认，不直接套默认值。
 
-| 维度 | 默认草案 | 用户动作 |
-|---|---|---|
-| 方向 | L0 seed 全部标为 A | 改为 A / B / C |
-| 地区 | open | 选择 Europe / North America / Oceania / Asia / open |
-| 开始时间窗 | open | 填季度或 open |
-| 形态偏好 | project_position, pi_open_call | 可多选 7 类形态（含 pi_cold_email：先找 PI 后陶瓷） |
-| 资金硬门槛 | funded_only | funded_only / accept_self_funded / already_funded |
-| 语言 | english_only | english_only / accepts_other_languages |
-| 偏好源（可选） | 留空 | 填心仪的机构名 / 站点 domain / 国家区域 |
+| # | 配置项 | 默认草案 | 用户动作 |
+|---|---|---|---|
+| 1 | 方向（A/B/C 标签） | L0 seed 全部标为 A | 改为 A / B / C / 删除 |
+| 2 | 地区 | open | 选择 Europe / North America / Oceania / Asia / open（multi） |
+| 3 | 开始时间窗 | open | 填季度或 open |
+| 4 | 形态偏好 | project_position + pi_open_call | 可多选 7 类形态（含 pi_cold_email：先找 PI 后陶瓷） |
+| 5 | 资金硬门槛 | funded_only | funded_only / accept_self_funded / already_funded |
+| 6 | 语言 | english_only | english_only / accepts_other_languages |
+| 7 | 偏好源（可选） | 留空 | 填自己想到的机构 / 站点 domain / 区域 |
+| 8 | 匹配阈值 | 0.6 | 0.4-0.8 内调整 |
+| 9 | 每次写入条数 | 1 | 1-5；1 = 精准反馈，3-5 = 多看，≥5 反馈疲劳 |
 
-匹配阈值默认 `0.6`，可在 `0.4-0.8` 内调整。
-
-**偏好源（第 7 维）问法**：
+**偏好源（「偏好源」项）问法**：
 
 > "有没有特别想盯紧的机构、站点或区域？例如 'UFZ', 'ETH Zurich', 'Germany'。
 > 留空也行——下一步 (Step 4.5) AI 会再推一批候选让你勾。"
@@ -192,10 +192,10 @@ fi
 
 **和 Step 4.5 的关系**：
 
-- **第 7 维**：你**自己想到的**特殊机构 / 网站 / 区域（即使 AI 没推也想跟）
+- **「偏好源」项**：你**自己想到的**特殊机构 / 网站 / 区域（即使 AI 没推也想跟）
 - **Step 4.5**：AI 推荐候选 + 你勾选（默认勾 top-N）
 
-两者最终都写到 `preferred_sources` 同一字段，合并去重。**第 7 维留空不会跳过 Step 4.5**——Step 4.5 总是跑，AI 兜底推荐。
+两者最终都写到 `preferred_sources` 同一字段，合并去重。**「偏好源」项留空不会跳过 Step 4.5**——Step 4.5 总是跑，AI 兜底推荐。
 
 ---
 
@@ -283,7 +283,7 @@ fi
 
 - profile version
 - Notion Inbox database id 占位
-- 6 维问卷结果（含可选第 7 维 `preferred_sources`）
+- 配置问卷结果（含可选「偏好源」项 `preferred_sources`）
 - match threshold
 - enabled opportunity types（默认仅 focus 2 类，用户在问卷里勾选其他）
 - opportunity_types.priority（focus / normal / low 三层）
