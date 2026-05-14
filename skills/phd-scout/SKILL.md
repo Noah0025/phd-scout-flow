@@ -1,6 +1,6 @@
 ---
 name: phd-scout
-description: PhD 搜索 + 初评 + 写 Notion / 反馈优化（可选子模式）。读 ~/.phd-scout/profile.yaml 和 keywords.md，按启用形态搜索，验证并评估，写入 Notion Inbox 或本地日志。用法：/phd-scout 或 /phd-scout --review-feedback
+description: PhD 搜索 + 初评 + 写 Notion。读 ~/.phd-scout/profile.yaml 和 keywords.md，按启用形态搜索，验证并评估，写入 Notion Inbox 或本地日志。反馈优化是独立 skill (/phd-keyword-optimize)。用法：/phd-scout
 ---
 
 # PhD Scout
@@ -183,35 +183,3 @@ candidates:
 未通过原因: [closed: 2, deadline_passed: 3, link_unverified: 1, ...]
 ```
 
----
-
-## --review-feedback 子模式（可选 - 合并旧 /phd-keyword-optimize）
-
-跑 `/phd-scout --review-feedback`：基于 Notion Feedback + 本地日志做关键词调整。
-
-### 流程
-
-1. 读 Notion Inbox 中 Feedback 非空条目（要 / 不要 / 观望）
-2. 与本地 `~/.phd-scout/logs/scout-*.yaml` 关联（按 `feedback_key`）
-3. 有效样本 < 3 条 → 停止，不写回
-4. 归因分析：
-   - 正向样本（要）→ 高频 search / context 命中词 + 高频机构 / 站点
-   - 负向样本（不要）→ 重复 ≥ 3 次的特征列入降级 / 排除候选
-
-### 输出三张表 → 等用户确认
-
-```
-表 1：调整 role（如 search → context，或 context → exclude）
-表 2：建议新增关键词（含 parent 关系）
-表 3：调整 preferred_sources（加机构 / 站点 / 移除负向源）
-```
-
-接受格式：`yes` / `no` / `accept 1,3` / `edit ...`
-
-### 写回（强制人工确认）
-
-- 备份 `keywords.md` 和 `profile.yaml`
-- 按确认结果更新
-- 删除已消费的 scout-*.yaml 日志（按文件粒度，全部候选都成功归因才删）
-
-不调用 `--review-feedback` 时这段流程不执行。

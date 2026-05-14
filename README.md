@@ -32,7 +32,7 @@
 ```
 /phd-scout-init          # 一次性：抽关键词 + 配置问卷 + 建 Notion Inbox
 /phd-scout               # 常规搜索 + 评估 + 写 Notion（手动 or cron）
-/phd-scout --review-feedback   # 攒够反馈后跑，调整关键词库
+/phd-keyword-optimize    # 攒够反馈后跑，归因 + 三张表 + 强制人工确认写回
 ```
 
 ---

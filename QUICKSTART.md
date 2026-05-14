@@ -79,8 +79,8 @@ grep -q "^## Keywords" "$HOME/.phd-scout/keywords.md"
 
 ```
 下一步：
-  /phd-scout                    # 跑第一次搜索（手动）
-  /phd-scout --review-feedback  # 攒够 Notion 反馈后跑（≥3 条要/不要）
+  /phd-scout                # 跑第一次搜索（手动）
+  /phd-keyword-optimize     # 攒够 Notion 反馈后跑（≥3 条要/不要）
 ```
 
 ---
