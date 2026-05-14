@@ -141,7 +141,7 @@ mkdir -p "$HOME/.phd-scout/logs" "$HOME/.phd-scout/templates"
 | 方向 | L0 seed 全部标为 must | 改为 must / nice / no |
 | 地区 | open | 选择 Europe / North America / Oceania / Asia / open |
 | 开始时间窗 | open | 填季度或 open |
-| 形态偏好 | project_position, pi_open_call | 可多选 6 类形态 |
+| 形态偏好 | project_position, pi_open_call | 可多选 7 类形态（含 pi_cold_email：先找 PI 后陶瓷） |
 | 资金硬门槛 | funded_only | funded_only / accept_self_funded / already_funded |
 | 语言 | english_only | english_only / accepts_other_languages |
 | 偏好源（可选） | 留空 | 填心仪的机构名 / 站点 domain / 国家区域 |
@@ -160,6 +160,46 @@ mkdir -p "$HOME/.phd-scout/logs" "$HOME/.phd-scout/templates"
 - `regions_focus`: 区域名列表（强化国家信号）
 
 填了的话，`/phd-scout` 每次会在默认主源之外**追加搜索**这些偏好源，扩大覆盖。
+
+---
+
+## Step 4.5 — 机构 / 学科平台 / 区域聚合站预筛（AI 推荐 + 用户勾选）
+
+目的：扩大搜索覆盖，不只代替用户搜他已知的源。
+
+基于已确认的 (方向 must / 地区 / 形态)，AI 实时推三类候选（不读静态文件，靠当下知识 + 必要时 web 检索）：
+
+### 候选 1 — 机构（institutions）
+
+8-15 个该方向 + 地区里**有持续招博士传统**的机构。每条带：
+
+- 机构名
+- 所在国家
+- 推荐理由（一句话：例 "在 [your_problem_domain] 方向常发 funded PhD"）
+
+### 候选 2 — 学科聚合站（sites）
+
+5-10 个该方向特有的招聘聚合平台（不是 EURAXESS / FindAPhD 这种通用主源）。例：
+
+- 环境工程 → 学科性 job board / 学会招聘页
+- 计算机 → 学科 mailing list mirror / 实验室聚合站
+- 生命科学 → field-specific careers
+
+每条带：domain + 推荐理由。
+
+### 候选 3 — 区域聚合站（regions_focus）
+
+3-8 个区域性聚合站，覆盖用户问卷里 `region.include` 的范围（例德国 → Helmholtz portal / GerWin / Academics.de）。
+
+### 展示给用户
+
+按三类列出，每条前加 `[ ]`。让用户：
+
+- 勾选 → 写入 `preferred_sources.institutions / sites / regions_focus`
+- 全部不选 → `preferred_sources` 留空（fallback 到默认主源）
+- 自己补充 → 用户手填的也加进对应列表
+
+**重要**：AI 不要替用户决定，不要默认全选。
 
 ---
 

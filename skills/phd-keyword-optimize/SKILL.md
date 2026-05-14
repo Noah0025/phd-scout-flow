@@ -118,14 +118,31 @@ ls "$HOME/.phd-scout/logs"/scout-*.yaml 2>/dev/null
 |---|---|---|---|---|
 | [keyword_or_feature] | nice | exclude | 负向样本 N 次 | 可能误杀相邻方向 |
 
-### 表 4（仅当机构信号显著时）：建议调整 preferred_sources
+### 表 4（仅当源信号显著时）：建议调整 preferred_sources
 
-| 机构 / 站点 / 区域 | 当前 | 建议 | 证据 |
-|---|---|---|---|
-| [institution_or_site] | 不在 list | 加进 institutions | 正向样本 ≥3 次 |
-| [institution_or_site] | 在 institutions | 移除 | 负向样本 ≥3 次 |
+输入来自三个地方：
 
-若无显著机构信号，跳过这张表。
+1. Notion Feedback "要"/"不要" 关联到的机构（来自候选评估字段）
+2. Scout 日志的 `discovered_sources` 字段（探测搜索发现的新源）
+3. 用户备注里反复提到的机构 / 站点
+
+| 类型 | 项目 | 当前 | 建议 | 证据 |
+|---|---|---|---|---|
+| institutions | [institution_name] | 不在 list | 加进 institutions | 正向样本 ≥3 次 |
+| institutions | [institution_name] | 在 institutions | 移除 | 负向样本 ≥3 次 |
+| sites | [example.org] | 不在 list（来自 discovered_sources） | 加进 sites | 跨 ≥2 次 scout 出现且正向样本 ≥3 次 |
+| sites | [example.org] | 在 sites | 移除 | 负向样本 ≥3 次 |
+| regions_focus | [country / region] | 不在 list | 加进 regions_focus | 正向样本 ≥3 次 |
+| regions_focus | [country / region] | 在 regions_focus | 移除 | 负向样本 ≥3 次 |
+
+判断原则：
+
+- `discovered_sources` 中单次 scout 出现的 domain 不进入此表（要跨次累积才算信号）
+- 用户 "要" 的候选所在 domain → 该 domain 累计正向 +1
+- 用户 "不要" 的候选所在 domain → 该 domain 累计负向 +1
+- 同一 domain 既正又负 → 优先看绝对值差，差 < 2 时归为"不动"
+
+若三类都无显著信号，跳过这张表。
 
 ---
 

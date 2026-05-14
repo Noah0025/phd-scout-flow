@@ -1,6 +1,9 @@
 # Search Form Guide
 
-`/phd-scout` 覆盖 6 类 PhD 形态。profile 里可以开关，不需要每次都搜全部。
+`/phd-scout` 覆盖 7 类 PhD 形态。profile 里可以开关，不需要每次都搜全部。
+
+> 设计前提：搜得比用户快、广，第三视角，消除信息差。
+> 默认主源 + 用户偏好源 + 探测搜索，三层覆盖。
 
 ---
 
@@ -157,6 +160,42 @@ external funding PhD [must_keyword]
 
 ---
 
+## 2.5. PI Cold Email
+
+跟 PI Open Call 相邻但不一样：那个是**找招聘公告**（被动），这个是**先找 PI 后陶瓷**（主动）。
+
+典型来源：
+
+- Google Scholar（近 3 年活跃发文者）
+- 实验室 / 课题组主页
+- 院系 faculty page（找方向匹配的 PI）
+- 个人学术主页 / ORCID
+
+适合：
+
+- 方向明确，知道自己要解决什么问题的人
+- 愿意先识别 PI 再主动联系，能接受"没有现成岗位"的人
+- 自带或能申请奖学金的人（CSC / DAAD / Chevening 等）
+
+关键过滤信号：
+
+- PI 近 3 年是否在 must keyword 方向有真实产出（看论文，不看主页措辞）
+- 课题组主页是否有 "openings" / "join us" / "PhD positions" 段
+- 找不到 openings 段也可以发，但要做好"不一定有回音"的预期
+
+输出**不是岗位卡片**，是 PI 卡片（见 `templates/phd-eval-template.md` 备用模板）。
+
+搜索词模板：
+
+```
+[must_keyword] author:                    # Google Scholar 找活跃发文者
+[pi_name] research group homepage
+[pi_name] lab openings
+site:[university_domain] [pi_name] PhD positions
+```
+
+---
+
 ## 6. Industrial PhD
 
 典型来源：
@@ -193,3 +232,44 @@ company PhD position [must_keyword]
 - 形态不是优劣排序，只是入口不同。
 - profile 可以关闭不想看的形态。
 - 运行结果靠 Feedback 收敛，不靠第一次搜索定型。
+
+---
+
+## 广度策略：三层源池
+
+PhD 项目不是都发布在 EURAXESS / FindAPhD 这些主源上——区域性聚合站、机构官网、学科平台都可能漏掉。`/phd-scout` 用三层覆盖：
+
+### 一级：默认主源（写死，每次都搜）
+
+7 类形态各自绑定的典型来源（见上文每类的"典型来源"段）。
+
+### 二级：用户偏好源（init 阶段勾选 + optimize 阶段沉淀）
+
+`profile.yaml` 的 `preferred_sources`：
+
+- `institutions`：心仪机构
+- `sites`：学科 / 区域性聚合站 domain
+- `regions_focus`：强化区域信号
+
+来源：
+
+1. `/phd-scout-init` Step 4.5：AI 根据问卷推荐候选（机构 / 学科平台 / 区域站），用户勾选
+2. `/phd-keyword-optimize` 表 4：用户反馈 ≥3 次"要"的同一源，建议加入
+
+### 三级：探测搜索（每次 1 次，发现新源）
+
+`/phd-scout` Step 3.6：每次跑一次通用 Google 查询（不带 site filter），看是否有新平台 / 新机构出现 ≥2 次。
+
+发现物：
+
+- 写入日志 `discovered_sources` 字段
+- 不自动加进 preferred_sources（保持可预测）
+- 用户在 Notion 标"要" ≥3 次该源候选 → optimize 表 4 建议沉淀
+
+### 为什么这样设计
+
+- 写死主源 → 漏长尾平台
+- 全网无限制搜 → 噪音爆炸 + 成本高
+- 用户自己维护源清单 → 重新创造中介成本
+
+三层 = 主源稳 + 用户偏好可控 + 探测发现长尾，闭环自然收敛。

@@ -36,3 +36,32 @@ PI/课题组：[pi_or_group or unknown]
 - [ ] 检查 PI / group 近两年研究主题
 - [ ] 检查申请材料和截止日期
 - [ ] 判断是否需要进一步深调研
+
+---
+
+## 备用模板：PI Cold Email 形态
+
+对 `pi_cold_email` 候选，使用以下字段替代（无 funding / deadline，因为还没岗位）：
+
+```
+PI 姓名：[pi_full_name]
+所属机构 / 课题组：[institution] · [group_or_lab_name]
+主页：[lab_url]
+邮箱：[pi_email or "需在主页找"]
+近期方向（≤3 年）：[3-5 篇代表论文标题或一句话研究主题]
+方向匹配：[强匹配 / 中性 / 弱匹配] — [reason]
+形态：pi_cold_email
+为何推荐：[一句因果链]
+优先级：[A/B/C]
+是否找到 "openings" 段：[Yes / No / Unknown]
+
+陶瓷信号：
+- [ ] PI 主页是否明确写"accepting PhD students"
+- [ ] 课题组近期是否有招生公告 / 新成员入组
+- [ ] PI 是否近期发了与你方向高度相关的论文
+
+下一步人工检查：
+- [ ] 读 2-3 篇 PI 最近论文判断真实匹配度
+- [ ] 看课题组是否有现成 PhD 招生页（找不到再考虑 cold email）
+- [ ] 准备 cold email 草稿 + 个人材料
+```

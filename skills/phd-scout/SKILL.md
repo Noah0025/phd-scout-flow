@@ -69,10 +69,19 @@ TEMPLATES  = $SCOUT_HOME/templates
 |---|---|---|
 | project_position | EURAXESS / FindAPhD / jobs.ac.uk | `PhD [must_keyword] [nice_keyword] funded` |
 | pi_open_call | 院系页 / PI 主页 | `[must_keyword] PhD position research group` |
+| pi_cold_email | Google Scholar / 实验室主页 | `[must_keyword] author:` (Scholar) → `[pi_name] lab openings` |
 | cdt_dtp | CDT / DTP 页面 | `doctoral training [must_keyword] PhD studentship` |
 | msca_dn | EURAXESS MSCA filter | `MSCA Doctoral Network [must_keyword] PhD` |
 | outbound_scholarship | 奖学金 + 院系页 | `[scholarship_name] PhD [must_keyword] supervisor` |
 | industrial_phd | 企业 / 大学联合岗位 | `industrial PhD [must_keyword] funded` |
+
+**pi_cold_email 特殊流程**（与其他形态不同）：
+
+1. Google Scholar 搜 `[must_keyword]`，过滤近 3 年高发文者 → 提取 PI 名 + 机构 + 近期论文
+2. 对每个 PI 找其实验室主页 / 院系主页
+3. 主页找 "openings" / "join us" / "PhD positions" 段
+4. 输出 **PI 卡片**（不是岗位卡片）：见 `templates/phd-eval-template.md` 备用模板
+5. 评级按 `templates/phd-eval-criteria.md` 的"PI Cold Email 特殊规则"
 
 规则：
 
@@ -108,6 +117,8 @@ TEMPLATES  = $SCOUT_HOME/templates
 
 ## Step 3.5 — 偏好源追加搜索（仅当 `preferred_sources` 非空）
 
+每次 scout 跑都要做这一步，确保你勾选过的偏好源都覆盖到。
+
 对每个启用形态，主搜完后追加一轮：
 
 - `institutions` 非空 → 对每个机构拼接 `[机构名] PhD [must_keyword]` 跑一次
@@ -117,6 +128,34 @@ TEMPLATES  = $SCOUT_HOME/templates
 追加搜索的候选合并进主搜候选池，统一进入 Step 4 过滤。匹配规则不变。
 
 不要把"机构名"或"site"本身当作关键词命中——它们只用于扩大搜索覆盖，不计入 60% 匹配分。
+
+---
+
+## Step 3.6 — 探测搜索（每次 scout 跑 1 次）
+
+目的：发现新源 / 新机构 / 新聚合站，不让搜索范围被默认主源 + preferred_sources 写死。
+
+执行 1 次通用 Google 搜索（**不带任何 site 过滤**）：
+
+```
+[must_keyword] PhD position [current_year_or_next_year]
+```
+
+从结果前 30 条提取 domain 分布。规则：
+
+- 同一 domain 出现 ≥ **2 次** → 记入 `discovered_sources`（见 `templates/scout-log-example.yaml`）
+- 已在 `preferred_sources.sites` 或默认主源里的 domain → 不重复记录
+- 单次出现的 domain → 忽略（噪音）
+
+**不自动加进 preferred_sources**——保持 scout 行为可预测。新源的沉淀路径：
+
+```
+discovered_sources（日志） → 用户在 Notion 标"要" ≥3 次该源候选
+  → /phd-keyword-optimize 表 4 建议加进 preferred_sources.sites
+  → 用户确认 → 写入 profile
+```
+
+候选物本身（不是 domain）该被验链 / 过滤的还是走 Step 4-6。探测的产物只有 domain 进入 `discovered_sources` 字段。
 
 ---
 
@@ -202,13 +241,15 @@ TEMPLATES  = $SCOUT_HOME/templates
 日志 schema 可由 AI 调整，但必须能支持 `/phd-keyword-optimize` 归因：
 
 - 本次使用的 must / nice / exclude
-- 搜索 query
+- 本次使用的 preferred_sources（institutions / sites / regions_focus）
+- 搜索 query（含探测搜索那一条）
 - 候选 URL
 - 命中关键词
 - 未命中关键词
 - 通过 / 排除原因
 - 是否写入 Notion
 - 用户后续 feedback 可关联的去重键
+- `discovered_sources`：探测搜索发现的新 domain（≥2 次出现的）
 
 ---
 

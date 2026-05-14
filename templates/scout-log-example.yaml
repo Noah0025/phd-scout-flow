@@ -55,3 +55,13 @@ excluded:
   - title: "[excluded_title]"
     url: "https://example.edu/closed"
     reason: "deadline passed"
+
+# 探测搜索发现的新源（来自 Step 3.6）。不自动加进 preferred_sources，
+# 等 keyword-optimize 反馈循环里用户标"要" ≥3 次同一源后再建议加入。
+discovered_sources:
+  - domain: "[example-jobs-platform.org]"
+    seen_count: 2          # 出现次数，N >= 2 才记录
+    sample_urls:
+      - "https://example-jobs-platform.org/phd-001"
+      - "https://example-jobs-platform.org/phd-007"
+    context: "通用查询 'PhD [must_keyword] 2026' 命中"

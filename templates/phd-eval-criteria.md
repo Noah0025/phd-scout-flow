@@ -54,3 +54,15 @@ C 的含义：通常不写入 Notion；若写入，必须标明原因。
 - 不因为机构名或排名单独升为 A。
 - 不因为关键词多就自动升为 A；关键词必须和岗位主题发生真实关系。
 - 不能验证链接时，最高为 B。
+
+---
+
+## PI Cold Email 形态的特殊规则
+
+`pi_cold_email` 候选没有 funding / deadline 字段，不能套用上面 A/B/C 规则。改用：
+
+- **A**：PI 近期论文与 must keyword 强匹配（≥2 篇近 3 年相关）+ 主页明确写"accepting PhD students" / 有 openings 段
+- **B**：PI 近期论文与 must keyword 相关（≥1 篇近 3 年）但**主页未明示招生**——可以尝试 cold email
+- **C**：论文匹配度弱 / 多年无相关产出 / 课题组明确写"not accepting"
+
+cold email 形态的"链接验证"指的是 **PI 主页可访问 + 邮箱可读取**。两者都验不了 → 最高 B。

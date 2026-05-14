@@ -36,7 +36,8 @@ questionnaire:
   opportunity_types:
     enabled:
       - project_position
-      - pi_open_call
+      - pi_open_call       # 找招聘公告（被动）
+      - pi_cold_email      # 先找 PI 后陶瓷（主动），输出 PI 卡片不是岗位卡片
       - cdt_dtp
       - msca_dn
       - outbound_scholarship
