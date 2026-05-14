@@ -20,7 +20,8 @@ matching:
   threshold_hint: 0.5       # match_rate 参考线，仅作 LLM 评级 hint
   a_weight: 2               # A 级权重（用于 LLM 综合打分时的相对重要性）
   b_weight: 1               # B 级权重
-  c_level_is_hard_exclude: true   # 命中任何 C 级 → 整体排除（保留 C 的硬规则）
+  c_level_action: "downrank"      # downrank（默认）：命中 C → 降到 C 评级，仍写入 Notion 让用户判
+                                  # exclude：命中 C → 整体排除，慎用（会把机会往外推）
 
 questionnaire:
   directions:

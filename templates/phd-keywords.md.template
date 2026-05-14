@@ -13,7 +13,7 @@ Last updated: YYYY-MM-DD
 - `/phd-scout` must not invent new keywords at runtime.
 - `A` keywords: **优先级最高** — 搜索时优先用，评估时加权大（默认 weight = 2）。不是 hard hit 门槛。
 - `B` keywords: **优先级次之** — A 失败时补搜，评估时支撑分（默认 weight = 1）。
-- `C` keywords: **硬排除** — 命中 C 级整体排除（profile.matching.c_level_is_hard_exclude 默认 true）。init 可主动标，optimize 反馈也会沉淀。
+- `C` keywords: **降权信号** — 默认 `c_level_action: downrank`（命中 C → 降到 C 评级，仍写入 Notion 让用户判，不主动把机会往外推）。设 `exclude` 可启用严格排除（慎用）。init 可主动标，optimize 反馈也沉淀。
 
 **seed_type 区分**（A / B 级关键词都有此属性）：
 

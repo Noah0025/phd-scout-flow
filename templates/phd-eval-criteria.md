@@ -59,7 +59,7 @@ B 的含义：可以进 Inbox，但不要排在 A 前面。
 - deadline 已过，且没有 rolling / open call 信息
 - 页面显示 closed / filled
 - 信息缺失太多，无法判断
-- 命中 C 级关键词（profile.c_level_is_hard_exclude=true 时直接排除，否则降级到 C）
+- 显著命中 C 级关键词（profile.matching.c_level_action=downrank 时降到 C 评级；=exclude 时整体排除）
 - 与负向反馈特征高度重合
 
 C 的含义：通常不写入 Notion；若写入，必须标明原因。

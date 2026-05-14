@@ -192,7 +192,9 @@ cp "$HOME/.phd-scout/profile.yaml" "$HOME/.phd-scout/profile.yaml.bak-YYYY-MM-DD
 
 3. 不动其他字段（matching / questionnaire / opportunity_types 等）
 
-3. 删除本轮**已消费**日志（按文件粒度，明确列举）：
+### 5c. 删除本轮已消费日志（5a + 5b 完成后执行）
+
+按文件粒度，明确列举：
 
 ```bash
 # 在 Step 2 归因分析时，每个匹配到 feedback 的 log 路径加入 consumed_log_paths

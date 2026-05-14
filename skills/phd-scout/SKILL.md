@@ -171,7 +171,7 @@ PhD [a_level_keyword] [b_level_keyword] funded 2026 OR 2027
 
 ### 跨次稳定性
 
-每条 query 字符串与本地 `~/.phd-scout/logs/scout-*.yaml` 历史 query 对比。
+每条 query 字符串与本地 `~/.phd-scout/query_history.yaml` 对比（独立于 scout log，cooldown 状态持久化）。
 若同一 query 在 `query_repeat_cooldown_days`（默认 14）内已跑过 → 跳过本次，节省预算。
 
 ---
@@ -263,11 +263,13 @@ discovered_sources（日志） → 用户在 Notion 标"要" ≥3 次该源候�
 
 ## Step 4 — 硬性筛选（只过滤死亡条件，不做数学打分）
 
-**不做加权分硬过滤**——评估视角应该是"项目需要什么 / 用户覆盖多少"，**用关键词库做分母会过度稀释**（库越大分越低）。匹配度判断挪到 Step 6 评估时由 LLM 综合判。
+**不做加权分硬过滤**——评估视角应该是"项目需要什么 / 用户覆盖多少"，**用关键词库做分母会过度稀释**（库越大分越低）。`match_rate`（项目角度覆盖率）计算挪到 Step 6 评估时由 LLM 综合判。
 
 Step 4 只过滤死亡条件：
 
-1. **C 级硬排除**：命中任何 C 级关键词 → 整体排除（除非 profile.matching.c_level_is_hard_exclude = false）
+1. **C 级处理**（按 profile.matching.c_level_action）：
+   - `downrank`（默认）：命中 C 级关键词 → 标记 `c_hit_count`，**不排除**；Step 6 评估时显著降分（最高 C 评级，但仍写入 Notion 让用户最终判断——不主动把机会往外推）
+   - `exclude`：命中 C 级 → 整体排除（用户主动选严格模式时启用）
 2. **funding 不符** → 排除（profile.questionnaire.funding.rule）
 3. **deadline 已过且无 rolling 标记** → 排除
 4. **明显过期年份信号**（防 EURAXESS 等排序不按 deadline 的坑）：候选描述/标题/URL 中出现 ≥3 年前的年份（如 2022/2023 当前 2026）→ 标 `likely_expired`，最高 B 级，必须 Step 5 验链确认
@@ -276,7 +278,7 @@ Step 4 只过滤死亡条件：
 
 通过 Step 4 → 进入 Step 4.5 跨形态去重 → Step 5 验链。
 
-匹配度的"绝对计数"仍要记录（供 Step 6 评估 + 日志归因用）：
+关键词命中的"绝对计数"仍要记录（供 Step 6 算 match_rate + 日志归因用）：
 
 ```
 A_hits: 候选描述里命中的 A 级关键词列表（含 search_anchor + weight_only）
@@ -346,7 +348,7 @@ B_hits: 候选描述里命中的 B 级关键词列表
 - `templates/phd-eval-template.md`
 - `templates/phd-eval-criteria.md`
 
-### 项目角度匹配度（核心）
+### 项目角度覆盖率 match_rate（核心）
 
 **不用"用户关键词库 / total"做分母**——库越大分越被稀释。视角颠倒：
 
@@ -474,7 +476,9 @@ LLM 用语义识别处理常见情况：
 
 ---
 
-## Step 8 — 写入本地日志
+## Step 8 — 写入本地日志（scout log + query history）
+
+### 8a. 本次 scout 完整日志
 
 写入：
 
@@ -494,6 +498,25 @@ LLM 用语义识别处理常见情况：
 - 是否写入 Notion
 - 用户后续 feedback 可关联的去重键
 - `discovered_sources`：探测搜索发现的新 domain（≥2 次出现的）
+
+### 8b. Query History（独立于 scout log，给 cooldown 检查用）
+
+写入 / 更新：
+
+```
+~/.phd-scout/query_history.yaml
+```
+
+schema：
+
+```yaml
+queries:
+  - query: "[exact query string]"
+    last_run: "YYYY-MM-DD"
+    opportunity_type: "project_position"
+```
+
+→ Step 2.5 跨次稳定性检查从这个文件读历史 query（不从 scout-*.yaml 提取，因为 `/phd-keyword-optimize` 会删消费过的 scout log，但 cooldown 状态要持久化）。每次 scout 跑完追加 / 更新本次跑过的所有 query。
 
 ---
 
