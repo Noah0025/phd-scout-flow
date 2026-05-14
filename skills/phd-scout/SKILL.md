@@ -1,6 +1,6 @@
 ---
 name: phd-scout
-description: 常规 PhD 搜索与初评。读取 ~/.phd-scout/profile.yaml 和 keywords.md，按 6 类形态搜索，执行 60% 匹配过滤，验链，生成评估，写入 Notion Inbox 与本地日志。用法：/phd-scout
+description: 常规 PhD 搜索与初评。读取 ~/.phd-scout/profile.yaml 和 keywords.md，按 7 类形态搜索，执行 60% 匹配过滤，验链，生成评估，写入 Notion Inbox 与本地日志。用法：/phd-scout
 ---
 
 # PhD Scout
@@ -96,16 +96,37 @@ TEMPLATES  = $SCOUT_HOME/templates
 
 ## Step 2.5 — 预算分配与形态优先级
 
-读 `search.total_queries_per_scout`（默认 30）和 `opportunity_types.priority`（focus / normal / low）。
+读 `search.total_queries_per_scout`（默认 30）、`opportunity_types.priority`（focus / normal / low）、`min_reserved_for_normal`（默认 6）、`min_reserved_for_low`（默认 0）。
 
-### 预算分配
+### 预算分配公式
 
 ```
-focus 形态：先分配，每个分 queries_per_type（默认 3）轮主查询
-normal 形态：次之
-low 形态：最后；若总查询数累计将超 total_queries_per_scout，砍掉 low 层
-preferred_source_queries（每形态默认 3）按形态自身预算独立计算，仍受总预算约束
-probe_queries（默认 1）独立保留，不能因预算挤占砍掉
+单形态总开销 = queries_per_type + min(preferred_source_total_per_type, preferred_sources 非空时 1，否则 0)
+
+预算保留：
+  reserved_for_normal = min_reserved_for_normal
+  reserved_for_low    = min_reserved_for_low
+  probe 预算固定保留：probe_queries
+  focus 可用预算 = total_queries_per_scout - probe_queries - reserved_for_normal - reserved_for_low
+
+分配顺序：
+  1. focus 层按形态循环分配，每形态扣"单形态总开销"，直到 focus 可用预算耗尽
+     若 focus 层某形态已分到 queries_per_type 但偏好源 query 仍超预算
+       → 该形态偏好源 query 数按剩余预算 prorate（最少 1，最多 preferred_source_total_per_type）
+  2. normal 层用 reserved_for_normal 预算，同样按形态循环分配
+  3. low 层用 reserved_for_low 预算（默认 0 → low 形态不主动跑，除非用户调高）
+  4. probe_queries 始终独立保留，不能被其他层挤占
+```
+
+**示例**（默认值 + 2 focus 形态 + preferred_sources 非空）：
+
+```
+total=30, probe=1, normal_reserve=6, low_reserve=0
+focus 可用 = 30 - 1 - 6 - 0 = 23
+focus 形态 A: queries_per_type(3) + preferred_source_total_per_type(3) = 6
+focus 形态 B: 6
+→ focus 用掉 12，剩 11 → normal 形态分到 11+6 = 17（但 normal_reserve 只承诺 6）
+注意：reserved 是下限，超出 reserved 的部分可被更高层用完后顺延
 ```
 
 总预算上限优先于完整覆盖。**不要为了搜完所有形态而无限增查询数**。
@@ -207,6 +228,10 @@ PhD [a_level_keyword] [b_level_keyword] funded 2026 OR 2027
 ```
 [a_level_keyword] PhD position [current_year_or_next_year]
 ```
+
+**探测 query 显式豁免 cooldown 检查**——和 `probe_queries` 预算保留同理由：探测的价值在长尾发现，跨次重复跑同一查询并不浪费（每次结果可能不同）。
+
+为减少重复噪音，探测 query 可在多个 A 级关键词之间轮换：每次 scout 选用上次未用的 A 级关键词；若所有 A 级都用过 → 重新轮换。
 
 从结果前 30 条提取 domain 分布。规则：
 
@@ -330,7 +355,10 @@ A 级 X/N · B 级 Y/M · 总 Z%
 
 ### 7.1 Fetch DB schema（每次写入前）
 
-调 Notion MCP `retrieve_database` 获取当前实际字段列表。
+调用当前客户端暴露的 Notion MCP **fetch / retrieve-database** 工具（常见名：`notion-fetch` / `notion-retrieve-database`；OpenAI 客户端可能省略 `notion-` 前缀）。
+
+input：`database_id` = profile 中的 inbox_database_id
+output：当前实际字段列表（含名称、类型、select 选项值）
 
 → 这一步是为了支持用户自己改字段名 / 加新字段。每次写入都 fetch 是廉价操作。
 
@@ -359,10 +387,21 @@ LLM 用语义识别处理常见情况：
 
 ### 7.4 异常处理
 
-- standard 字段在 DB 找不到（用户删了）→ 警告 + 跳过该字段
-- 必需字段缺失（Title / 链接 / Feedback）→ **写入中止**，终端报告标红 + 提示用户检查 DB
-- 写入 API 失败 → 重试 1 次；二次失败 → 重 fetch schema 再试一次
+**字段缺失（用户改字段名 + LLM 映射不上 / 用户删了字段）**：
+
+1. 非必需字段（机构 / 城市国家 / PI / 资助 / 命中关键词 / 匹配分 / 备注 等）找不到对应 DB 字段 → 跳过该字段写入，警告但不中止
+2. **必需字段缺失**（Title / 链接 / 形态 / 优先级 / Feedback）→ **不要直接中止**，先尝试自动补建：
+   - 调当前客户端暴露的 Notion MCP **update-database** 工具（常见名 `notion-update-database`），按 `templates/notion-schema-inbox.md` 的 spec 加回这个 property
+   - 补建成功 → 继续写入
+   - 补建失败（权限不足 / API 错误）→ 这条候选写本地日志 + 终端报告标红，提示用户去 DB 加回字段
+
+**API 失败重试**：
+
+- 写入失败 → 重试 1 次
+- 二次失败 → 重新 fetch schema（用户可能在 scout 跑期间改了 DB）→ 重做映射 → 再试 1 次
 - 三次失败 → 只写本地日志，终端报告列出失败项 + DB URL，让用户人工处理
+
+**绝对不要**因为 1 条候选写入失败就中止整次 scout——把失败项标记后，继续处理其他候选。
 
 ### 7.5 关于"写到别处"
 

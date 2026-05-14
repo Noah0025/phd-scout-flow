@@ -161,11 +161,13 @@ ls "$HOME/.phd-scout/logs"/scout-*.yaml 2>/dev/null
 
 ---
 
-## Step 5 — 写回 keywords.md
+## Step 5 — 写回文件（拆两段：keywords.md + profile.yaml）
 
 确认后：
 
-1. 备份当前文件：
+### 5a. 写回 keywords.md（表 1-3 的产物）
+
+1. 备份：
 
 ```bash
 cp "$HOME/.phd-scout/keywords.md" "$HOME/.phd-scout/keywords.md.bak-YYYY-MM-DD"
@@ -176,13 +178,43 @@ cp "$HOME/.phd-scout/keywords.md" "$HOME/.phd-scout/keywords.md.bak-YYYY-MM-DD"
    - L0/L1/L2 树
    - changelog
 
-3. 删除本轮已消费日志：
+### 5b. 写回 profile.yaml（表 4 的产物 — 仅当表 4 非空）
+
+1. 备份：
 
 ```bash
-rm "$HOME/.phd-scout/logs"/scout-*.yaml
+cp "$HOME/.phd-scout/profile.yaml" "$HOME/.phd-scout/profile.yaml.bak-YYYY-MM-DD"
 ```
 
-只删除本轮使用过的 scout 日志。若某日志未能匹配 Notion feedback，保留。
+2. 更新 `preferred_sources` 三类列表（institutions / sites / regions_focus）：
+   - 用户确认"加进"的 → 追加到对应列表
+   - 用户确认"移除"的 → 从对应列表删除
+
+3. 不动其他字段（matching / questionnaire / opportunity_types 等）
+
+3. 删除本轮**已消费**日志（按文件粒度，明确列举）：
+
+```bash
+# 在 Step 2 归因分析时，每个匹配到 feedback 的 log 路径加入 consumed_log_paths
+# Step 5 只删 consumed_log_paths 里的文件
+for log_path in "${consumed_log_paths[@]}"; do
+  rm "$log_path"
+done
+```
+
+判定"已消费"的标准（必须**全部满足**）：
+
+- 该日志中的某条候选与某条 Notion feedback（要 / 不要）成功匹配
+- 由该 feedback 产生的关键词 / 源调整建议已经写回 keywords.md（或 profile.yaml）
+- 该日志中**所有候选**都已经成功归因（部分匹配的日志保留）
+
+不删的情况：
+
+- 未能匹配到任何 feedback 的日志（用户还没给反馈）
+- 部分匹配的日志（保留以备后续 feedback）
+- 包含 `discovered_sources` 信号但尚未沉淀到 preferred_sources 的日志
+
+**cooldown 状态独立**：query cooldown 检查依赖 `~/.phd-scout/query_history.yaml`，由 scout 写入；本步删 scout 日志不影响 cooldown。
 
 ---
 

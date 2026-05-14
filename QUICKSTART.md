@@ -203,7 +203,7 @@ Check local files:
 test -s "$HOME/.phd-scout/profile.yaml"
 test -s "$HOME/.phd-scout/keywords.md"
 grep -q "threshold:" "$HOME/.phd-scout/profile.yaml"
-grep -q "## Must" "$HOME/.phd-scout/keywords.md"
+grep -q "^## A" "$HOME/.phd-scout/keywords.md" && grep -q "^## B" "$HOME/.phd-scout/keywords.md" && grep -q "^## C" "$HOME/.phd-scout/keywords.md"
 ```
 
 Optional smoke test:

@@ -57,7 +57,7 @@ questionnaire:
     accepted_languages: ["English"]
 
 preferred_sources:
-  # 可选。留空则只走 6 类形态的默认主源（EURAXESS / FindAPhD 等）。
+  # 可选。留空则只走 7 类形态的默认主源（EURAXESS / FindAPhD 等）。
   # 填了机构 / 站点后，每类形态主搜完会追加一轮 `site:` 或 `[机构名]` 拼接搜索。
   institutions: [] # 例: ["UFZ", "ETH Zurich", "TU Delft"]
   sites: []        # 例: ["ufz.de", "ethz.ch"]，用于 site: 操作符
@@ -65,11 +65,15 @@ preferred_sources:
 
 search:
   # === 资源预算（硬上限）===
-  total_queries_per_scout: 30      # 一次 scout 总查询数上限
-  queries_per_type: 3              # 每形态至多 3 次主查询（main loop）
-  preferred_source_queries: 3      # 每形态偏好源追加查询数
-  probe_queries: 1                 # 探测搜索固定 1 次
-  results_per_query: 20            # 每查询取前 N 条候选
+  total_queries_per_scout: 30        # 一次 scout 总查询数上限
+  queries_per_type: 3                # 每形态主搜轮数（main loop）
+  preferred_source_total_per_type: 3 # 每形态偏好源追加查询数上限（无论 institutions/sites 有多少条，本形态偏好源加起来不超过此数）
+  probe_queries: 1                   # 探测搜索固定 1 次，独立预算
+  results_per_query: 20              # 每查询取前 N 条候选
+
+  # === 预算保留（避免 focus 吃光，normal/low 拿不到）===
+  min_reserved_for_normal: 6         # 至少给 normal 层保留 N query
+  min_reserved_for_low: 0            # low 层默认不强制保留（可设 ≥0）
 
   # === 候选写入控制 ===
   max_candidates_per_type: 10

@@ -160,7 +160,7 @@ external funding PhD [a_level_keyword]
 
 ---
 
-## 2.5. PI Cold Email
+## 6. PI Cold Email
 
 跟 PI Open Call 相邻但不一样：那个是**找招聘公告**（被动），这个是**先找 PI 后陶瓷**（主动）。
 
@@ -196,7 +196,7 @@ site:[university_domain] [pi_name] PhD positions
 
 ---
 
-## 6. Industrial PhD
+## 7. Industrial PhD
 
 典型来源：
 

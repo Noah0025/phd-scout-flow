@@ -151,7 +151,7 @@ mkdir -p "$HOME/.phd-scout/logs" "$HOME/.phd-scout/templates"
 **偏好源（第 7 维）问法**：
 
 > "有没有特别想盯紧的机构、站点或区域？例如 'UFZ', 'ETH Zurich', 'Germany'。
-> 留空也行——只用默认 6 类主源搜（EURAXESS / FindAPhD / jobs.ac.uk 等）。"
+> 留空也行——只用默认 7 类形态主源搜（EURAXESS / FindAPhD / jobs.ac.uk 等）。"
 
 收集为三类（用户可任填一项或全填）：
 
@@ -267,12 +267,32 @@ mkdir -p "$HOME/.phd-scout/logs" "$HOME/.phd-scout/templates"
 ### 7.3 若选 B（半自动建 DB）
 
 1. 询问父 page：
-   > "PhD Inbox 想放到哪个 page 下？给我 page URL 或选 'workspace 根'。"
+   > "PhD Inbox 想放到哪个 page 下？请给我 page URL 或 page ID。
+   > （workspace 根作为 parent 在多数 MCP 客户端不支持，建议先在 Notion 里建一个空 page 用作 parent。）"
 
-2. 调 Notion MCP `create_database`：
-   - parent = 用户给的 page
-   - title = `PhD Inbox`（默认；用户可改）
-   - properties = 按 `templates/notion-schema-inbox.md` 的 14 字段全套（含 7 类形态 select、4 类资助 select、A/B/C 优先级等）
+2. 调用当前客户端暴露的 Notion MCP **create-database** 工具（不同客户端命名略不同，常见名：`notion-create-database` / `notion-create-pages` 系列；OpenAI 客户端可能省略 `notion-` 前缀）：
+   - `parent` = 用户给的 page (`{ "type": "page_id", "page_id": "..." }`)
+   - `title` = `PhD Inbox`（默认；用户可改）
+   - `properties` = 按 `templates/notion-schema-inbox.md` 的 14 字段全套（Title / Text / URL / Date / Select / Multi-select 类型；select 选项含 7 类形态 / 4 类资助 / A/B/C 优先级 / 要-不要-观望）
+
+   property shape 示例：
+   ```json
+   {
+     "形态": {
+       "select": {
+         "options": [
+           {"name": "project_position"},
+           {"name": "pi_open_call"},
+           {"name": "pi_cold_email"},
+           {"name": "cdt_dtp"},
+           {"name": "msca_dn"},
+           {"name": "outbound_scholarship"},
+           {"name": "industrial_phd"}
+         ]
+       }
+     }
+   }
+   ```
 
 3. 输出 DB URL，让用户审：
    > "已建好 PhD Inbox database：[URL]
