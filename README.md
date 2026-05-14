@@ -125,7 +125,7 @@ phd-scout-flow/
 也可以把 `keywords.md` 显式放到 Notion 数据库里作为 source of truth——
 适合在手机上随时改的人。两种都行，自己挑。
 
-Notion Inbox（评估报告）是**必须的**，所有搜索结果写到这里给你审。
+Notion Inbox（评估报告）是默认写入目标。如果你想写到别处（Obsidian / Logseq / 邮件 / Markdown 文件），自己改 `skills/phd-scout/SKILL.md` 的 Step 7 即可，其余流程不变。
 
 ---
 

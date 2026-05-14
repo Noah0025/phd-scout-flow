@@ -244,16 +244,61 @@ mkdir -p "$HOME/.phd-scout/logs" "$HOME/.phd-scout/templates"
 
 ---
 
-## Step 7 — Notion Inbox 引导
+## Step 7 — Notion Inbox 配置
 
-读取 `docs/notion-mcp-setup.md` 和 `templates/notion-schema-inbox.md`，引导用户完成：
+### 7.1 检查 Notion MCP 可用性
 
-1. 创建 Notion Inbox database。
-2. 按 schema 添加字段。
-3. 把 Notion database id 写入 `profile.yaml`。
-4. 验证 AI 工具能 search / create page。
+调一次 Notion MCP search 测试连通性。
 
-若用户暂时没有 Notion MCP，仍可完成本地配置，但 `/phd-scout` 只能输出终端报告和日志，不能写 Inbox。
+- ✅ 可用 → 继续 7.2
+- ❌ 不可用 → **引导装 MCP**（不降级，不进入手动模式）：
+  > "phd-scout-flow 默认把评估报告写到 Notion，需要先装 Notion MCP。
+  > 请按 `docs/notion-mcp-setup.md` 完成配置，完成后回来重跑 `/phd-scout-init`。
+  > 如果你想把结果写到别处（Obsidian / 邮件 / 别的地方），后续可以自己改
+  > `skills/phd-scout/SKILL.md` 的 Step 7。默认写入 Notion。"
+
+### 7.2 询问用户：已有 DB 还是新建？
+
+> "你已经有 PhD Inbox database 了吗？
+> A. 已有 → 给我 database ID
+> B. 没有 → 我帮你建一个（半自动）
+> C. 自己建 → 我给你 schema 文档，你照着建"
+
+### 7.3 若选 B（半自动建 DB）
+
+1. 询问父 page：
+   > "PhD Inbox 想放到哪个 page 下？给我 page URL 或选 'workspace 根'。"
+
+2. 调 Notion MCP `create_database`：
+   - parent = 用户给的 page
+   - title = `PhD Inbox`（默认；用户可改）
+   - properties = 按 `templates/notion-schema-inbox.md` 的 14 字段全套（含 7 类形态 select、4 类资助 select、A/B/C 优先级等）
+
+3. 输出 DB URL，让用户审：
+   > "已建好 PhD Inbox database：[URL]
+   >
+   > 你可以现在去 Notion 里：
+   > - 改字段名（例如'机构'→'Institution'）—— skill 用语义匹配，不影响写入
+   > - 加新字段（如自己的标签）—— skill 不会动这些字段
+   > - 调 select 颜色 / 顺序 —— 无影响
+   > - **不要删除 14 个核心字段**，否则写入会失败
+   >
+   > 改完确认回复'好'。"
+
+4. 等用户确认。
+
+5. 把 DB ID 写入 `profile.yaml`。
+
+### 7.4 若选 A / C
+
+- A：用户给 DB ID → 写入 profile
+- C：输出 `templates/notion-schema-inbox.md` 内容 + `docs/notion-mcp-setup.md` 链接 → 等用户建好后给 ID
+
+### 7.5 字段映射机制说明（顺便告诉用户）
+
+> "scout 写入时会用 LLM 做语义映射——你把'机构'改成'Institution'、'Funded (Stipend)'改成'有奖学金'都能识别。
+> 但**删除字段**或**改字段类型**（如 Text → Number）会导致写入失败。
+> 增加字段是安全的，skill 不会动。"
 
 ---
 

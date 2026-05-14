@@ -324,16 +324,49 @@ A 级 X/N · B 级 Y/M · 总 Z%
 
 ---
 
-## Step 7 — 写入 Notion Inbox
+## Step 7 — 写入 Notion Inbox（语义映射）
 
 若 Notion MCP 可用且 profile 中有 database id：
 
-1. 按 `templates/notion-schema-inbox.md` 字段写入。
-2. 页面正文使用 `templates/phd-eval-template.md`。
-3. 写入失败重试 1 次。
-4. 仍失败则只写本地日志，并在终端报告中列出失败项。
+### 7.1 Fetch DB schema（每次写入前）
 
-字段名以模板为准，不临时新增字段。
+调 Notion MCP `retrieve_database` 获取当前实际字段列表。
+
+→ 这一步是为了支持用户自己改字段名 / 加新字段。每次写入都 fetch 是廉价操作。
+
+### 7.2 做字段语义映射
+
+把 `templates/notion-schema-inbox.md` 的 standard 字段名（如"机构"/"截止"/"匹配分"）映射到 DB 实际字段名。
+
+LLM 用语义识别处理常见情况：
+
+| Standard | DB 实际 | 怎么映射 |
+|---|---|---|
+| "机构" | "Institution" | 直接同义匹配 |
+| "截止" | "Deadline" / "Due" / "Application by" | 语义识别（日期字段 + 截止相关词） |
+| "形态" | "Type" / "Category" / "Opportunity Type" | 看 select 选项是否含 `project_position` 等关键值 |
+| "匹配分" | "Match Score" / "Score" | Text 字段 + 含 % 或 X/N 格式 |
+| "Feedback" | "Status" / "Want?" / "想要" | Select 字段 + 选项含"要/不要"或近义 |
+
+无法语义识别的 standard 字段 → 视为缺失，按 7.4 处理。
+
+### 7.3 写入
+
+按映射好的字段名 + `templates/phd-eval-template.md` 正文写一条 Notion page。
+
+- 用户自加的字段（不在 standard 列表里）→ skill 不动，留空
+- 用户改 select 选项值（如把"要"→"Want"）→ 写入时同步映射
+
+### 7.4 异常处理
+
+- standard 字段在 DB 找不到（用户删了）→ 警告 + 跳过该字段
+- 必需字段缺失（Title / 链接 / Feedback）→ **写入中止**，终端报告标红 + 提示用户检查 DB
+- 写入 API 失败 → 重试 1 次；二次失败 → 重 fetch schema 再试一次
+- 三次失败 → 只写本地日志，终端报告列出失败项 + DB URL，让用户人工处理
+
+### 7.5 关于"写到别处"
+
+默认写 Notion。如果用户想写到别处（Obsidian / Logseq / Markdown 文件 / 邮件），**自己改本 Step 的实现**。其余 Step（搜索 / 评估 / 日志）不变。
 
 ---
 
