@@ -251,21 +251,33 @@ discovered_sources（日志） → 用户在 Notion 标"要" ≥3 次该源候�
 
 ---
 
-## Step 4 — 60% 匹配过滤
+## Step 4 — 加权匹配过滤
+
+**A/B/C 是优先级，不是硬门槛**。A 级命中加权大，B 级支撑，C 级是唯一硬排除。
 
 过滤规则：
 
-1. 至少命中 1 个 `A 级` 关键词。
-2. 支撑关键词（B 级）命中率 `matched_b_level / total_relevant_b_level >= match_threshold`。
-3. 不命中 `C 级` 中的硬排除词。
-4. 满足 funding rule。
-5. 满足 region rule 和 language rule；若信息缺失，降级为待确认，不直接通过 A 级。
+1. **C 级硬排除**：命中任何 C 级关键词 → 整体排除（除非 profile.matching.c_level_is_hard_exclude = false）。
+2. **加权打分**：
+   ```
+   a_weight = profile.matching.a_weight（默认 2）
+   b_weight = profile.matching.b_weight（默认 1）
+   weighted_score = (a_weight × A_hits + b_weight × B_hits)
+                    / (a_weight × A_total_relevant + b_weight × B_total_relevant)
+   ```
+   `A_total_relevant` / `B_total_relevant` = 该形态在 keywords.md 中标记可用的关键词总数（去除 C 级）。
+3. **通过**：`weighted_score ≥ match_threshold`（默认 0.6）。
+4. **A 级零命中 + B 级覆盖低** = 通常评级为 C（见 eval-criteria）。但**不是硬过滤**——若 weighted_score 仍 ≥ threshold（罕见但可能），候选保留进入评估，由评级规则决定优先级。
+5. 满足 funding rule。
+6. 满足 region rule 和 language rule；若信息缺失，降级为待确认，不直接给 A 级评级。
 
 匹配分格式：
 
 ```
-A 级 X/N · B 级 Y/M · 总 Z%
+A 级 X/N · B 级 Y/M · 加权 Z%
 ```
+
+→ X = A_hits, N = A_total_relevant, Y = B_hits, M = B_total_relevant, Z = weighted_score × 100
 
 ---
 

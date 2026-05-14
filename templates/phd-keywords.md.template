@@ -11,9 +11,9 @@ Last updated: YYYY-MM-DD
 - L0 comes from user evidence.
 - L1/L2 expansion happens only during init or confirmed optimize.
 - `/phd-scout` must not invent new keywords at runtime.
-- `A` keywords: 硬性命中池，搜索结果至少命中 1 个。
-- `B` keywords: 支撑分（用于 60% 匹配），主搜失败时可补搜。
-- `C` keywords: 排除词或降权词（init 阶段可主动标，optimize 反馈循环也会沉淀）。
+- `A` keywords: **优先级最高** — 搜索时优先用，评估时加权大（默认 weight = 2）。不是 hard hit 门槛。
+- `B` keywords: **优先级次之** — A 失败时补搜，评估时支撑分（默认 weight = 1）。
+- `C` keywords: **硬排除** — 命中 C 级整体排除（profile.matching.c_level_is_hard_exclude 默认 true）。init 可主动标，optimize 反馈也会沉淀。
 
 ---
 

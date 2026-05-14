@@ -41,12 +41,25 @@ FALLBACK_PATHS   = /path/to/cv_or_transcript_or_sop
 mkdir -p "$HOME/.phd-scout/logs" "$HOME/.phd-scout/templates"
 ```
 
-2. 检查模板是否存在：
-   - `templates/phd-profile.yaml.template`
-   - `templates/phd-keywords.md.template`
-   - `templates/notion-schema-inbox.md`
+2. **检查并自动复制模板**到 `~/.phd-scout/templates/`（若用户直接跑 init 没跑 QUICKSTART Task 3，这一步兜底）：
 
-3. 检查是否已有配置：
+```bash
+# 找到 phd-scout-flow 仓库路径（用户可能在不同位置 clone）
+REPO=$(dirname "$(dirname "$(realpath "${BASH_SOURCE[0]:-$0}")")")
+# 若 ~/.phd-scout/templates/ 为空 → 从 repo 复制
+if [ -z "$(ls -A ~/.phd-scout/templates/ 2>/dev/null)" ]; then
+  cp "$REPO"/templates/*.template "$REPO"/templates/*.md "$REPO"/templates/*.yaml ~/.phd-scout/templates/ 2>/dev/null
+fi
+```
+
+若复制失败（如 `$REPO` 解析失败 / 文件不存在）→ 提示用户先按 QUICKSTART Task 3 手动复制，并停止。
+
+3. 检查必需模板：
+   - `~/.phd-scout/templates/phd-profile.yaml.template`
+   - `~/.phd-scout/templates/phd-keywords.md.template`
+   - `~/.phd-scout/templates/notion-schema-inbox.md`
+
+4. 检查是否已有配置：
    - `profile.yaml` 已存在 → 询问用户是否覆盖、补充或退出
    - `keywords.md` 已存在 → 询问用户是否覆盖、补充或退出
 
@@ -58,19 +71,27 @@ mkdir -p "$HOME/.phd-scout/logs" "$HOME/.phd-scout/templates"
 
 ### 1a. capability-network 路径
 
-若用户提供 `CAPABILITY_VAULT`，读取：
+若用户提供 `CAPABILITY_VAULT`，**不要硬编码目录名**——capability-network 标准结构是 `Fields/Concepts/Sources/Overviews/`，但很多用户用了自定义命名（如 `99_Fields/01_Concept/07_Articles/` 这类带序号前缀）。
 
-- `$CAPABILITY_VAULT/index.md`
-- `$CAPABILITY_VAULT/Fields/*.md`
-- `$CAPABILITY_VAULT/Concepts/**/*.md` 的标题、frontmatter、一级/二级标题
-- `$CAPABILITY_VAULT/Sources/**/*.md` 的 TL;DR 和核心能力段落
+**读取顺序**：
+
+1. 必读：`$CAPABILITY_VAULT/index.md` — capability-network 强制有的入口文件，包含 TOC 和 wikilinks 指向所有 Field / Summary / Concept 卡。AI 先读这个建立全局视图。
+2. 按 index 中的 wikilinks 解析实际文件路径（vault 内不同子目录都可能）。
+3. **兜底 glob**：若 index 缺失或链接不全，跑 `find $CAPABILITY_VAULT -name "*.md" -not -path "*/node_modules/*" -not -path "*/.obsidian/*"`，按 frontmatter `tags:` 字段识别：
+   - `tags: [Field]` → Field 卡
+   - `tags: [Concept/A]` / `[Concept/B]` / `[Concept/C]` → 概念卡
+   - `tags: [Study/Course]` / `[Study/Paper]` / `[Study/Thesis]` / `[Study/Internship]` 等 → 来源总结
+   - `tags: [Overview]` → 全局视图
+   - `tags: [Meta]` → index 自身或元数据
 
 重点抽取：
 
-- Field 名称
-- Concept/A 与 Concept/B 标题
+- Field 名称（领域级映射）
+- Concept/A 与 Concept/B 标题（方法 + 视角）
 - Summary 中反复出现的方法、对象、数据、问题域
 - 核心能力 checklist
+
+不要从子目录名推断分类——以 frontmatter tag 为准。
 
 ### 1b. fallback 资料
 
@@ -87,22 +108,32 @@ mkdir -p "$HOME/.phd-scout/logs" "$HOME/.phd-scout/templates"
 
 ---
 
-## Step 2 — 生成 L0 Seed
+## Step 2 — 生成 L0 Seed（批量呈现 + 用户标异议项）
 
-输出一张候选表，让用户确认。
+输出一张候选表，**AI 默认全标 A**，让用户只标异议项（而不是逐项确认）。
 
-| seed | 来源证据 | 初始标记 |
+| seed | 来源证据 | AI 草案 |
 |---|---|---|
 | [your_core_method] | [[source_or_file]] | A |
 | [your_problem_domain] | [[source_or_file]] | A |
-| [your_supporting_tool] | [[source_or_file]] | B |
+| [your_supporting_tool] | [[source_or_file]] | A |
+| ... | ... | A |
 
 规则：
 
 - L0 必须来自输入资料，不凭空添加。
 - 每个 seed 要有证据来源。
-- 默认标记只是草案，必须展示给用户逐项确认。
-- 用户可把 seed 标为 `A` / `B` / `C`（C 表示明确排除，init 允许主动标）。
+- **AI 默认全标 A**（优先级最高），用户只标异议项。
+- 用户回复格式：
+  - "OK" 或 "确认" → 接受默认（全 A）
+  - "改 3,7 为 B" → 把 seed 3 和 7 改 B（支撑分）
+  - "删 5" → seed 5 不进入关键词树
+  - "5 改 C" → seed 5 标 C 级（明确排除）
+  - "加 [keyword] 到 A" → 用户补充 seed
+
+不接受"逐项问"模式——用户标完异议后整体进入 Step 3。
+
+⚠️ 注意：A 级是**优先级**不是 hard hit 门槛（详见 README "命名契约"段）。
 
 ---
 
@@ -151,7 +182,7 @@ mkdir -p "$HOME/.phd-scout/logs" "$HOME/.phd-scout/templates"
 **偏好源（第 7 维）问法**：
 
 > "有没有特别想盯紧的机构、站点或区域？例如 'UFZ', 'ETH Zurich', 'Germany'。
-> 留空也行——只用默认 7 类形态主源搜（EURAXESS / FindAPhD / jobs.ac.uk 等）。"
+> 留空也行——下一步 (Step 4.5) AI 会再推一批候选让你勾。"
 
 收集为三类（用户可任填一项或全填）：
 
@@ -159,7 +190,12 @@ mkdir -p "$HOME/.phd-scout/logs" "$HOME/.phd-scout/templates"
 - `sites`: 站点 domain 列表（用于 `site:` 操作符）
 - `regions_focus`: 区域名列表（强化国家信号）
 
-填了的话，`/phd-scout` 每次会在默认主源之外**追加搜索**这些偏好源，扩大覆盖。
+**和 Step 4.5 的关系**：
+
+- **第 7 维**：你**自己想到的**特殊机构 / 网站 / 区域（即使 AI 没推也想跟）
+- **Step 4.5**：AI 推荐候选 + 你勾选（默认勾 top-N）
+
+两者最终都写到 `preferred_sources` 同一字段，合并去重。**第 7 维留空不会跳过 Step 4.5**——Step 4.5 总是跑，AI 兜底推荐。
 
 ---
 
@@ -191,15 +227,36 @@ mkdir -p "$HOME/.phd-scout/logs" "$HOME/.phd-scout/templates"
 
 3-8 个区域性聚合站，覆盖用户问卷里 `region.include` 的范围（例德国 → Helmholtz portal / GerWin / Academics.de）。
 
-### 展示给用户
+### 展示给用户（默认勾选 top-N，用户"取消"而非"全勾"）
 
-按三类列出，每条前加 `[ ]`。让用户：
+按三类列出，**AI 默认勾选 top-N**，让用户**取消**不想要的（而不是从头勾全部）：
 
-- 勾选 → 写入 `preferred_sources.institutions / sites / regions_focus`
-- 全部不选 → `preferred_sources` 留空（fallback 到默认主源）
-- 自己补充 → 用户手填的也加进对应列表
+- 机构 institutions：默认勾选 **top-5**（按推荐理由相关度排序），其余 7-10 个放折叠区"显示更多"
+- 学科聚合站 sites：默认勾选 **top-3**，其余放"显示更多"
+- 区域聚合站 regions_focus：默认勾选 **top-2**，其余放"显示更多"
 
-**重要**：AI 不要替用户决定，不要默认全选。
+→ 默认 10 个勾选项（不是 27 个全勾），用户只需"取消 / 加更多"。
+
+格式示例：
+
+```
+机构（默认勾选 top-5）：
+[x] 1. UFZ — [理由]
+[x] 2. ETH Zurich — [理由]
+[x] 3. TU Delft — [理由]
+[x] 4. EAWAG — [理由]
+[x] 5. KIT — [理由]
+[ ] 6. ... (折叠，回复"显示更多"查看)
+```
+
+让用户：
+
+- 直接回复"OK"或"确认" → 接受默认 10 项
+- "取消 1, 3" / "加 6, 9" → 调整默认
+- "全选" → 全部 27 项都加（如本次 dogfood）
+- "全部不选" → preferred_sources 留空，fallback 到默认主源
+
+**AI 不要替用户最终决定**，但**给一个合理的默认起点**，减少决策疲劳。
 
 ---
 

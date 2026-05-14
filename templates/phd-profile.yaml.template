@@ -14,8 +14,13 @@ input_sources:
     - "[/absolute/path/to/cv_or_transcript]"
 
 matching:
-  threshold: 0.6 # allowed range: 0.4-0.8
-  a_level_min_hits: 1
+  threshold: 0.6      # allowed range: 0.4-0.8
+  # 加权打分（A 是优先级最高，不是硬门槛）：
+  #   weighted_score = (a_weight × A_hits + b_weight × B_hits) / (a_weight × A_total + b_weight × B_total)
+  # 候选通过过滤 = weighted_score ≥ threshold AND 不命中任何 C 级。
+  a_weight: 2         # A 级命中权重
+  b_weight: 1         # B 级命中权重
+  c_level_is_hard_exclude: true   # 命中任何 C 级 → 整体排除（保留 C 的硬规则）
 
 questionnaire:
   directions:
