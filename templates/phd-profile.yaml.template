@@ -6,97 +6,29 @@ updated_at: "YYYY-MM-DD"
 
 notion:
   inbox_database_id: "[notion_database_id]"
-  keywords_database_id: "" # optional mirror; local keywords.md remains default
 
 input_sources:
   capability_vault: "[/absolute/path/to/vault or empty]"
   fallback_paths:
     - "[/absolute/path/to/cv_or_transcript]"
 
-matching:
-  # 评估视角：从"项目角度"看 用户能贡献什么（不用 用户关键词库做分母）。
-  # match_rate = covered_job_signals / |job_signals|（LLM 在 Step 6 算）
-  # threshold 是给 LLM 的"参考线"，不是硬过滤——见 phd-eval-criteria.md 综合判。
-  threshold_hint: 0.5       # match_rate 参考线，仅作 LLM 评级 hint
-  a_weight: 2               # A 级权重（用于 LLM 综合打分时的相对重要性）
-  b_weight: 1               # B 级权重
-  c_level_action: "downrank"      # downrank（默认）：命中 C → 降到 C 评级，仍写入 Notion 让用户判
-                                  # exclude：命中 C → 整体排除，慎用（会把机会往外推）
-
-questionnaire:
-  directions:
-    # seed_type 区分用途：
-    #   search_anchor — 问题域类（如 [problem_domain_example] / [problem_domain_example_2]）适合做搜索主键，PhD 招聘高频出现
-    #   weight_only   — 方法类（如 [method_abbreviation] / [ml_method]）仅用于评估加权，不做搜索主键（PhD 招聘描述少出现方法名）
-    - seed: "[your_problem_domain]"
-      priority: "A"
-      seed_type: "search_anchor"
-      evidence: "[source file or note]"
-    - seed: "[your_core_method]"
-      priority: "A"
-      seed_type: "weight_only"
-      evidence: "[source file or note]"
-  regions:
-    mode: "open"
-    include: ["open"] # Europe | North America | Oceania | Asia | open
-    exclude: []
-  start_window:
-    mode: "open"
-    earliest: ""
-    latest: ""
-  opportunity_types:
-    # 默认只启用 2 类，由 init 问卷让用户勾选其他。不主动全开。
-    enabled:
-      - project_position
-      - pi_open_call
-      # 以下默认关闭，init 问卷可勾选加入：
-      # - pi_cold_email      # 先找 PI 后陶瓷（主动），输出 PI 卡片不是岗位卡片
-      # - cdt_dtp
-      # - msca_dn
-      # - outbound_scholarship
-      # - industrial_phd
-    priority:
-      # 预算分配优先级。focus 先跑，low 仅在预算有余时跑。
-      # 注意：priority 里的形态必须也在 enabled 列表中，否则忽略。
-      focus: [project_position, pi_open_call]
-      normal: [cdt_dtp, msca_dn]
-      low: [pi_cold_email, outbound_scholarship, industrial_phd]
-  funding:
-    rule: "funded_only" # funded_only | accept_self_funded | already_funded
-  language:
-    rule: "english_only"
-    accepted_languages: ["English"]
+# 用户偏好
+regions: ["open"]            # ["Europe", "Oceania", ...] 或 ["open"]
+start_window: "open"         # "2026 Fall" / "open"
+opportunity_types:
+  enabled:
+    - project_position
+    - pi_open_call
+    # 可加：pi_cold_email / cdt_dtp / msca_dn / outbound_scholarship / industrial_phd
+funding: "funded_only"       # funded_only | accept_self_funded | already_funded
+language: ["English"]        # 可多选：English / German / French / ...
 
 preferred_sources:
-  # 可选。留空则只走 7 类形态的默认主源（EURAXESS / FindAPhD 等）。
-  # 填了机构 / 站点后，每类形态主搜完会追加一轮 `site:` 或 `[机构名]` 拼接搜索。
-  institutions: [] # 例: ["Example Research Institute", "Example University A", "Example University B"]
-  sites: []        # 例: ["institute.example.edu", "university.example.edu"]，用于 site: 操作符
-  regions_focus: [] # 例: ["Country A", "Country B"]，强化区域信号
+  institutions: []           # 例: ["Example University", "Example Research Institute"]
+  sites: []                  # 例: ["example.edu", "research.example.org"] 用于 site: 操作符
 
+# 搜索预算（精简到 3 项；其余 SKILL 内置默认）
 search:
-  # === 资源预算（硬上限）===
-  total_queries_per_scout: 30        # 一次 scout 总查询数上限
-  queries_per_type: 3                # 每形态主搜轮数（main loop）
-  preferred_source_total_per_type: 3 # 每形态偏好源追加查询数上限（无论 institutions/sites 有多少条，本形态偏好源加起来不超过此数）
-  probe_queries: 1                   # 探测搜索固定 1 次，独立预算
-  results_per_query: 20              # 每查询取前 N 条候选
-
-  # === 预算保留（避免 focus 吃光，normal/low 拿不到）===
-  min_reserved_for_normal: 6         # 至少给 normal 层保留 N query
-  min_reserved_for_low: 0            # low 层默认不强制保留（可设 ≥0）
-
-  # === 候选写入控制 ===
-  max_candidates_per_type: 10
-  max_written_per_type: 1            # 单形态写入上限（防一类占满）
-  max_total_written_per_scout: 1     # ⭐ 一次 scout 最多写入 Notion 的总条数
-  # 推荐值 1：每次只看最优 1 条，反馈精准。
-  # 调到 3-5：能看更多选项，但每条反馈成本上升。
-  # 调到 ≥7：等同每形态 1 条，Inbox 会快速淹没，反馈疲劳。
-
-  # === 去重 ===
-  dedupe_window_days: 180          # 已写入 Notion 的候选 N 天内不重写
-  query_repeat_cooldown_days: 14   # 同一 query 字符串 N 天内不重跑
-
-  # === 时效性 ===
-  append_year_filter: true         # 搜索词自动追加 [current_year] OR [next_year]
+  queries_per_type: 3        # 每形态主搜轮数
+  results_per_query: 20      # 每查询取前 N 条结果
+  max_written_per_scout: 1   # 一次 scout 最多写入 Notion 几条（推荐 1，反馈精准）

@@ -8,70 +8,24 @@ Last updated: YYYY-MM-DD
 
 ## Rules
 
-- L0 comes from user evidence.
-- L1/L2 expansion happens only during init or confirmed optimize.
-- `/phd-scout` must not invent new keywords at runtime.
-- `A` keywords: **优先级最高** — 搜索时优先用，评估时加权大（默认 weight = 2）。不是 hard hit 门槛。
-- `B` keywords: **优先级次之** — A 失败时补搜，评估时支撑分（默认 weight = 1）。
-- `C` keywords: **降权信号** — 默认 `c_level_action: downrank`（命中 C → 降到 C 评级，仍写入 Notion 让用户判，不主动把机会往外推）。设 `exclude` 可启用严格排除（慎用）。init 可主动标，optimize 反馈也沉淀。
-
-**seed_type 区分**（A / B 级关键词都有此属性）：
-
-- `search_anchor`：问题域类（如 [problem_domain_example] / [problem_domain_example_2]）—— **用作搜索主键** + 评估加权
-- `weight_only`：方法类（如 [method_abbreviation] / [ml_method]）—— **不进搜索 query**，只在评估时加权（避免搜索结果跑偏）
+- 关键词来自用户输入资料（vault / CV / SoP / transcript），不凭空发明。
+- `/phd-scout` 运行时只读本文件，**不在运行时扩展关键词**。
+- 一个关键词只有一个 `role`：
+  - `search` — 进搜索 query 的核心方向词（问题域 / 应用领域）
+  - `context` — 评估时参考的方法 / 技能 / 邻域词（不进 query 避免跑偏）
+  - `exclude` — 不要的方向，命中即排除候选
 
 ---
 
-## A
+## Keywords
 
-| keyword | level | parent | type | evidence | notes |
-|---|---|---|---|---|---|
-| [your_problem_domain] | L0 | - | search_anchor | [source] | 搜索主键，PhD 招聘高频 |
-| [domain_synonym] | L1 | [your_problem_domain] | search_anchor | init expansion | |
-| [your_core_method] | L0 | - | weight_only | [source] | 仅评估加权，不做搜索主键 |
-| [method_variant] | L1 | [your_core_method] | weight_only | init expansion | synonym / abbreviation |
-
----
-
-## B
-
-| keyword | level | parent | type | evidence | notes |
-|---|---|---|---|---|---|
-| [your_supporting_topic] | L0 | - | search_anchor | [source] | 弱支撑搜索 |
-| [related_subproblem] | L2 | [your_supporting_topic] | search_anchor | init expansion | narrower topic |
-
----
-
-## C
-
-| keyword | reason | source | date |
-|---|---|---|---|
-| [too_broad_keyword] | too broad / repeated negative feedback | init or optimize | YYYY-MM-DD |
-
----
-
-## Keyword Tree
-
-### [your_core_method]
-
-- status: A
-- evidence: [source file or note]
-- L1:
-  - [method_variant]
-  - [method_abbreviation]
-- L2:
-  - [submethod]
-  - [application_problem]
-
-### [your_problem_domain]
-
-- status: B
-- evidence: [source file or note]
-- L1:
-  - [domain_synonym]
-- L2:
-  - [narrow_problem]
-  - [data_type_or_context]
+| keyword | role | parent | evidence | notes |
+|---|---|---|---|---|
+| [your_problem_domain] | search | — | [source] | 主搜核心方向 |
+| [your_problem_domain_variant] | search | [your_problem_domain] | init expansion | 同义 / 缩写 |
+| [your_core_method] | context | — | [source] | 评估时背景信号 |
+| [your_method_abbreviation] | context | [your_core_method] | init expansion | abbr |
+| [unwanted_direction] | exclude | — | user marked | init 主动标排除 |
 
 ---
 
@@ -79,4 +33,4 @@ Last updated: YYYY-MM-DD
 
 | date | source | change | evidence |
 |---|---|---|---|
-| YYYY-MM-DD | init | created keyword tree | [input sources] |
+| YYYY-MM-DD | init | created | [input sources] |
