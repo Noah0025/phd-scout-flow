@@ -27,7 +27,7 @@ TEMPLATES  = $SCOUT_HOME/templates
 2. 读取 `$KEYWORDS`。
 3. 检查必需字段：
    - Notion Inbox database id
-   - enabled opportunity types
+   - enabled opportunity types + priority (focus / normal / low)
    - match threshold
    - funding rule
    - region rule
@@ -38,6 +38,9 @@ TEMPLATES  = $SCOUT_HOME/templates
 4. 读取可选字段 `preferred_sources`：
    - `institutions` / `sites` / `regions_focus` 任一非空 → 启用追加搜索（Step 3.5）
    - 全部为空 → 跳过追加搜索，只走默认主源
+5. 读取 `search` 预算字段：
+   - `total_queries_per_scout`、`queries_per_type`、`preferred_source_queries`、`probe_queries`、`results_per_query`、`query_repeat_cooldown_days`、`append_year_filter`
+   - 不存在则退回 SKILL 内置默认（见下）
 
 缺失 `profile.yaml` 或 `keywords.md` 时，停止并提示先运行 `/phd-scout-init`。
 
@@ -91,13 +94,77 @@ TEMPLATES  = $SCOUT_HOME/templates
 
 ---
 
+## Step 2.5 — 预算分配与形态优先级
+
+读 `search.total_queries_per_scout`（默认 30）和 `opportunity_types.priority`（focus / normal / low）。
+
+### 预算分配
+
+```
+focus 形态：先分配，每个分 queries_per_type（默认 3）轮主查询
+normal 形态：次之
+low 形态：最后；若总查询数累计将超 total_queries_per_scout，砍掉 low 层
+preferred_source_queries（每形态默认 3）按形态自身预算独立计算，仍受总预算约束
+probe_queries（默认 1）独立保留，不能因预算挤占砍掉
+```
+
+总预算上限优先于完整覆盖。**不要为了搜完所有形态而无限增查询数**。
+
+### 单形态内的查询模板（3 轮）
+
+每形态用 `keywords.md` 里**该形态启用的** must / nice 关键词组合：
+
+```
+轮 1: 主 must × 形态词模板（最广覆盖）
+轮 2: 主 must × top-2 nice 关键词（适中聚焦）
+轮 3: 第二 must × 形态词模板（覆盖另一方向）
+```
+
+规则：
+
+- 不做 `must × must` 组合（太窄）
+- nice 只配 must 出现，不单飞
+- 若只有 1 个 must keyword → 跳过轮 3，节省预算
+
+### 时效性
+
+若 `append_year_filter: true`（默认）：
+
+每条 query 末尾追加 `[current_year] OR [next_year]`。例：
+
+```
+PhD [must_keyword] [nice_keyword] funded 2026 OR 2027
+```
+
+例外：`pi_cold_email` 的 Google Scholar 搜索不加年份（影响 author filter）。
+
+### 跨次稳定性
+
+每条 query 字符串与本地 `~/.phd-scout/logs/scout-*.yaml` 历史 query 对比。
+若同一 query 在 `query_repeat_cooldown_days`（默认 14）内已跑过 → 跳过本次，节省预算。
+
+---
+
 ## Step 3 — 搜索与候选提取
 
-每类形态至少跑一轮搜索。若无结果：
+按 Step 2.5 分配的预算执行 3 轮主查询。
 
-1. 换用同一 must 关键词的 L1 变体。
-2. 换用另一个 must 关键词。
-3. 仍无结果时，用 nice 关键词补搜，但不能把 nice 当作硬性命中。
+每查询取前 `results_per_query` 条（默认 20）。
+
+### "失败"定义与回退
+
+一个形态被视为 **失败** 当且仅当：
+
+- 3 轮主查询累计候选 < 2 条 **或**
+- 候选全部通过过滤后（Step 4）剩 0 条
+
+失败时回退顺序：
+
+1. 换 must 关键词的 L1 变体重跑一轮（仍计入预算）
+2. 改用 nice 关键词补搜 1 轮，**但 nice 命中不算 must**
+3. 仍失败 → 在日志记 `no_eligible_candidate`，本形态结束（不无限补搜）
+
+成功定义：≥1 条通过 Step 4-5 过滤的候选。
 
 对每条候选提取：
 
@@ -174,6 +241,26 @@ discovered_sources（日志） → 用户在 Notion 标"要" ≥3 次该源候�
 ```
 硬性 X/N · 支撑 Y/M · 总 Z%
 ```
+
+---
+
+## Step 4.5 — 跨形态去重与候选合并
+
+同一候选可能在多个形态查询里出现（如同一岗位既被 project_position 抓到，也被 msca_dn 抓到）。
+
+合并规则：
+
+```
+去重键：normalize(url) + normalize(title + institution)
+命中多形态时：
+  - 保留为 1 条候选
+  - matched_types: [project_position, msca_dn, ...]
+  - 取最高匹配分
+  - 优先级取最严形态规则（如 msca_dn 有 mobility 检查未通过 → 整体降级）
+  - 不重复写入 Notion
+```
+
+跨形态去重在 Step 4 过滤之后、Step 5 验链之前。验链对合并后的 1 条候选做一次即可。
 
 ---
 

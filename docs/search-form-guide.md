@@ -235,6 +235,67 @@ company PhD position [must_keyword]
 
 ---
 
+## 搜索策略：广度优先 + 预算控 + 质量收敛
+
+`/phd-scout` 每次跑都按下面四条规则执行，避免"无限制全网搜"。
+
+### 1. 资源预算（硬上限）
+
+| 参数 | 默认 | 含义 |
+|---|---|---|
+| `total_queries_per_scout` | 30 | 一次 scout 总查询数上限 |
+| `queries_per_type` | 3 | 每形态主查询数（3 轮组合） |
+| `preferred_source_queries` | 3 | 每形态偏好源追加查询数 |
+| `probe_queries` | 1 | 探测搜索固定 1 次 |
+| `results_per_query` | 20 | 每查询取前 N 条 |
+
+超出总预算时，从 priority `low` 层开始砍。`focus` 层永远保留。`probe_queries` 不受挤压。
+
+### 2. 形态优先级
+
+profile 把 7 类形态分成 focus / normal / low。预算先分给 focus，依次到 low。
+
+```yaml
+opportunity_types:
+  priority:
+    focus: [project_position, pi_open_call]
+    normal: [cdt_dtp, msca_dn]
+    low: [pi_cold_email, outbound_scholarship, industrial_phd]
+```
+
+→ 默认 focus 是最常见两类，低预算时仍保覆盖。
+
+### 3. 关键词组合（每形态 3 轮）
+
+```
+轮 1: 主 must × 形态词模板          (最广覆盖)
+轮 2: 主 must × top-2 nice          (适中聚焦)
+轮 3: 第二 must × 形态词模板        (覆盖另一方向)
+```
+
+不做 must × must（太窄）。Nice 只配 must。
+
+### 4. 失败定义与回退
+
+- 失败 = 3 轮累计候选 < 2 条 或 全被过滤
+- 回退：换 L1 → 用 nice 补 1 轮（不算 must）→ 仍失败就放弃此形态
+- 不无限补搜——保护预算
+
+### 5. 跨形态去重
+
+同 URL 在多形态命中 → 合并为 1 候选，记 `matched_types: [...]`，Notion 写 1 条。
+
+### 6. 时效性
+
+`append_year_filter: true` 时，所有查询词追加 `[current_year] OR [next_year]`。
+例外：`pi_cold_email` 的 Scholar 查询不加（影响 author filter）。
+
+### 7. 跨次稳定性
+
+同一 query 字符串在 `query_repeat_cooldown_days`（默认 14 天）内不重跑——避免 cron 调度时浪费预算。
+
+---
+
 ## 广度策略：三层源池
 
 PhD 项目不是都发布在 EURAXESS / FindAPhD 这些主源上——区域性聚合站、机构官网、学科平台都可能漏掉。`/phd-scout` 用三层覆盖：

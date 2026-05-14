@@ -42,6 +42,12 @@ questionnaire:
       - msca_dn
       - outbound_scholarship
       - industrial_phd
+    priority:
+      # 预算分配优先级。focus 先跑，low 仅在预算有余时跑。
+      # 注意：priority 里的形态必须也在 enabled 列表中，否则忽略。
+      focus: [project_position, pi_open_call]
+      normal: [cdt_dtp, msca_dn]
+      low: [pi_cold_email, outbound_scholarship, industrial_phd]
   funding:
     rule: "funded_only" # funded_only | accept_self_funded | already_funded
   language:
@@ -56,6 +62,20 @@ preferred_sources:
   regions_focus: [] # 例: ["Germany", "Netherlands"]，强化区域信号
 
 search:
+  # === 资源预算（硬上限）===
+  total_queries_per_scout: 30      # 一次 scout 总查询数上限
+  queries_per_type: 3              # 每形态至多 3 次主查询（main loop）
+  preferred_source_queries: 3      # 每形态偏好源追加查询数
+  probe_queries: 1                 # 探测搜索固定 1 次
+  results_per_query: 20            # 每查询取前 N 条候选
+
+  # === 候选写入控制 ===
   max_candidates_per_type: 10
   max_written_per_type: 1
-  dedupe_window_days: 180
+
+  # === 去重 ===
+  dedupe_window_days: 180          # 已写入 Notion 的候选 N 天内不重写
+  query_repeat_cooldown_days: 14   # 同一 query 字符串 N 天内不重跑
+
+  # === 时效性 ===
+  append_year_filter: true         # 搜索词自动追加 [current_year] OR [next_year]
