@@ -15,15 +15,15 @@ input_sources:
 
 matching:
   threshold: 0.6 # allowed range: 0.4-0.8
-  must_keyword_min_hits: 1
+  a_level_min_hits: 1
 
 questionnaire:
   directions:
     - seed: "[your_core_method]"
-      priority: "must" # must | nice | no
+      priority: "A" # A | B | C
       evidence: "[source file or note]"
     - seed: "[your_problem_domain]"
-      priority: "nice"
+      priority: "B"
       evidence: "[source file or note]"
   regions:
     mode: "open"

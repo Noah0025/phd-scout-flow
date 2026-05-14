@@ -93,16 +93,16 @@ mkdir -p "$HOME/.phd-scout/logs" "$HOME/.phd-scout/templates"
 
 | seed | 来源证据 | 初始标记 |
 |---|---|---|
-| [your_core_method] | [[source_or_file]] | must |
-| [your_problem_domain] | [[source_or_file]] | must |
-| [your_supporting_tool] | [[source_or_file]] | nice |
+| [your_core_method] | [[source_or_file]] | A |
+| [your_problem_domain] | [[source_or_file]] | A |
+| [your_supporting_tool] | [[source_or_file]] | B |
 
 规则：
 
 - L0 必须来自输入资料，不凭空添加。
 - 每个 seed 要有证据来源。
 - 默认标记只是草案，必须展示给用户逐项确认。
-- 用户可把 seed 标为 `must` / `nice` / `no`。
+- 用户可把 seed 标为 `A` / `B` / `C`（C 表示明确排除，init 允许主动标）。
 
 ---
 
@@ -138,7 +138,7 @@ mkdir -p "$HOME/.phd-scout/logs" "$HOME/.phd-scout/templates"
 
 | 维度 | 默认草案 | 用户动作 |
 |---|---|---|
-| 方向 | L0 seed 全部标为 must | 改为 must / nice / no |
+| 方向 | L0 seed 全部标为 A | 改为 A / B / C |
 | 地区 | open | 选择 Europe / North America / Oceania / Asia / open |
 | 开始时间窗 | open | 填季度或 open |
 | 形态偏好 | project_position, pi_open_call | 可多选 7 类形态（含 pi_cold_email：先找 PI 后陶瓷） |
@@ -167,7 +167,7 @@ mkdir -p "$HOME/.phd-scout/logs" "$HOME/.phd-scout/templates"
 
 目的：扩大搜索覆盖，不只代替用户搜他已知的源。
 
-基于已确认的 (方向 must / 地区 / 形态)，AI 实时推三类候选（不读静态文件，靠当下知识 + 必要时 web 检索）：
+基于已确认的 (方向 A 级 / 地区 / 形态)，AI 实时推三类候选（不读静态文件，靠当下知识 + 必要时 web 检索）：
 
 ### 候选 1 — 机构（institutions）
 
@@ -207,11 +207,11 @@ mkdir -p "$HOME/.phd-scout/logs" "$HOME/.phd-scout/templates"
 
 根据问卷结果处理关键词：
 
-- `must`：硬性关键词池，搜索结果至少命中 1 个。
-- `nice`：支撑关键词池，用于 60% 匹配。
-- `no`：排除词或降权词，不进入正向搜索。
+- `A 级`：硬性关键词池，搜索结果至少命中 1 个。
+- `B 级`：支撑关键词池，用于 60% 匹配。
+- `C 级`：排除词或降权词，不进入正向搜索（init 允许主动标，也可由 optimize 反馈循环产生）。
 
-若用户把某个 L0 标为 `no`，其 L1/L2 默认也排除，除非用户明确保留其中某个词。
+若用户把某个 L0 标为 `C`，其 L1/L2 默认也排除，除非用户明确保留其中某个词。
 
 ---
 
@@ -238,7 +238,7 @@ mkdir -p "$HOME/.phd-scout/logs" "$HOME/.phd-scout/templates"
 `keywords.md` 必须包含：
 
 - L0/L1/L2 树
-- must / nice / exclude 分区
+- A 级 / B 级 / C 级 分区
 - 每个 L0 的证据来源
 - 最后更新时间
 
@@ -271,7 +271,7 @@ mkdir -p "$HOME/.phd-scout/logs" "$HOME/.phd-scout/templates"
 - L0 seed: N
 - L1 variants: N
 - L2 related terms: N
-- exclude: N
+- C 级: N
 
 ## Profile
 - 地区：...

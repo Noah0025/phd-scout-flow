@@ -26,15 +26,15 @@
 - funding 是否写明
 - deadline
 - start date
-- project description 是否命中 must keyword
+- project description 是否命中 A 级关键词
 - eligibility
 
 搜索词模板：
 
 ```
-PhD [must_keyword] [nice_keyword] funded
-[must_keyword] PhD studentship [country_or_region]
-site:euraxess.ec.europa.eu [must_keyword] PhD
+PhD [a_level_keyword] [b_level_keyword] funded
+[a_level_keyword] PhD studentship [country_or_region]
+site:euraxess.ec.europa.eu [a_level_keyword] PhD
 ```
 
 ---
@@ -63,9 +63,9 @@ site:euraxess.ec.europa.eu [must_keyword] PhD
 搜索词模板：
 
 ```
-[must_keyword] research group PhD openings
-[must_keyword] prospective PhD students supervisor
-[must_keyword] lab PhD opportunity
+[a_level_keyword] research group PhD openings
+[a_level_keyword] prospective PhD students supervisor
+[a_level_keyword] lab PhD opportunity
 ```
 
 ---
@@ -85,7 +85,7 @@ site:euraxess.ec.europa.eu [must_keyword] PhD
 
 关键过滤信号：
 
-- cohort topic 是否覆盖 must keyword
+- cohort topic 是否覆盖 A 级关键词
 - 是否有明确 project list
 - funding eligibility
 - training structure
@@ -93,9 +93,9 @@ site:euraxess.ec.europa.eu [must_keyword] PhD
 搜索词模板：
 
 ```
-doctoral training [must_keyword] PhD studentship
-CDT [must_keyword] PhD
-DTP [must_keyword] funded PhD
+doctoral training [a_level_keyword] PhD studentship
+CDT [a_level_keyword] PhD
+DTP [a_level_keyword] funded PhD
 ```
 
 ---
@@ -124,8 +124,8 @@ DTP [must_keyword] funded PhD
 搜索词模板：
 
 ```
-MSCA Doctoral Network [must_keyword] PhD
-site:euraxess.ec.europa.eu MSCA [must_keyword] doctoral candidate
+MSCA Doctoral Network [a_level_keyword] PhD
+site:euraxess.ec.europa.eu MSCA [a_level_keyword] doctoral candidate
 ```
 
 ---
@@ -153,9 +153,9 @@ site:euraxess.ec.europa.eu MSCA [must_keyword] doctoral candidate
 搜索词模板：
 
 ```
-[scholarship_name] PhD [must_keyword] supervisor
-[must_keyword] PhD supervisor accepting students
-external funding PhD [must_keyword]
+[scholarship_name] PhD [a_level_keyword] supervisor
+[a_level_keyword] PhD supervisor accepting students
+external funding PhD [a_level_keyword]
 ```
 
 ---
@@ -179,7 +179,7 @@ external funding PhD [must_keyword]
 
 关键过滤信号：
 
-- PI 近 3 年是否在 must keyword 方向有真实产出（看论文，不看主页措辞）
+- PI 近 3 年是否在 A 级关键词 方向有真实产出（看论文，不看主页措辞）
 - 课题组主页是否有 "openings" / "join us" / "PhD positions" 段
 - 找不到 openings 段也可以发，但要做好"不一定有回音"的预期
 
@@ -188,7 +188,7 @@ external funding PhD [must_keyword]
 搜索词模板：
 
 ```
-[must_keyword] author:                    # Google Scholar 找活跃发文者
+[a_level_keyword] author:                    # Google Scholar 找活跃发文者
 [pi_name] research group homepage
 [pi_name] lab openings
 site:[university_domain] [pi_name] PhD positions
@@ -220,9 +220,9 @@ site:[university_domain] [pi_name] PhD positions
 搜索词模板：
 
 ```
-industrial PhD [must_keyword] funded
-industry doctoral [must_keyword]
-company PhD position [must_keyword]
+industrial PhD [a_level_keyword] funded
+industry doctoral [a_level_keyword]
+company PhD position [a_level_keyword]
 ```
 
 ---
@@ -268,17 +268,17 @@ opportunity_types:
 ### 3. 关键词组合（每形态 3 轮）
 
 ```
-轮 1: 主 must × 形态词模板          (最广覆盖)
-轮 2: 主 must × top-2 nice          (适中聚焦)
-轮 3: 第二 must × 形态词模板        (覆盖另一方向)
+轮 1: 主 A 级 × 形态词模板          (最广覆盖)
+轮 2: 主 A 级 × top-2 B 级          (适中聚焦)
+轮 3: 第二 A 级 × 形态词模板        (覆盖另一方向)
 ```
 
-不做 must × must（太窄）。Nice 只配 must。
+不做 A × A（太窄）。B 级只配 A 级。
 
 ### 4. 失败定义与回退
 
 - 失败 = 3 轮累计候选 < 2 条 或 全被过滤
-- 回退：换 L1 → 用 nice 补 1 轮（不算 must）→ 仍失败就放弃此形态
+- 回退：换 L1 → 用 B 级补 1 轮（不算 A 级）→ 仍失败就放弃此形态
 - 不无限补搜——保护预算
 
 ### 5. 跨形态去重

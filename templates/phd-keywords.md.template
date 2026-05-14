@@ -11,13 +11,13 @@ Last updated: YYYY-MM-DD
 - L0 comes from user evidence.
 - L1/L2 expansion happens only during init or confirmed optimize.
 - `/phd-scout` must not invent new keywords at runtime.
-- `must` requires at least one hit.
-- `nice` contributes to the support match score.
-- `exclude` blocks or downgrades results.
+- `A` keywords: 硬性命中池，搜索结果至少命中 1 个。
+- `B` keywords: 支撑分（用于 60% 匹配），主搜失败时可补搜。
+- `C` keywords: 排除词或降权词（init 阶段可主动标，optimize 反馈循环也会沉淀）。
 
 ---
 
-## Must
+## A
 
 | keyword | level | parent | evidence | notes |
 |---|---|---|---|---|
@@ -26,7 +26,7 @@ Last updated: YYYY-MM-DD
 
 ---
 
-## Nice
+## B
 
 | keyword | level | parent | evidence | notes |
 |---|---|---|---|---|
@@ -35,7 +35,7 @@ Last updated: YYYY-MM-DD
 
 ---
 
-## Exclude
+## C
 
 | keyword | reason | source | date |
 |---|---|---|---|
@@ -47,7 +47,7 @@ Last updated: YYYY-MM-DD
 
 ### [your_core_method]
 
-- status: must
+- status: A
 - evidence: [source file or note]
 - L1:
   - [method_variant]
@@ -58,7 +58,7 @@ Last updated: YYYY-MM-DD
 
 ### [your_problem_domain]
 
-- status: nice
+- status: B
 - evidence: [source file or note]
 - L1:
   - [domain_synonym]

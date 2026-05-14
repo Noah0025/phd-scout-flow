@@ -6,7 +6,7 @@
 |---|---|---|---|
 | Keyword | Title | - | keyword text |
 | Level | Select | L0, L1, L2 | keyword level |
-| Status | Select | must, nice, exclude | matching role |
+| Status | Select | a_level, b_level, c_level | matching role |
 | Parent | Relation / Text | - | parent L0 or L1 |
 | Evidence | Text | - | input source or feedback evidence |
 | Source | Select | init, optimize, manual | where the term came from |

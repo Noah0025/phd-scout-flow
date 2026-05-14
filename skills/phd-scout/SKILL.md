@@ -32,9 +32,9 @@ TEMPLATES  = $SCOUT_HOME/templates
    - funding rule
    - region rule
    - language rule
-   - must keywords
-   - nice keywords
-   - exclude keywords
+   - A 级关键词
+   - B 级关键词
+   - C 级关键词
 4. 读取可选字段 `preferred_sources`：
    - `institutions` / `sites` / `regions_focus` 任一非空 → 启用追加搜索（Step 3.5）
    - 全部为空 → 跳过追加搜索，只走默认主源
@@ -70,17 +70,17 @@ TEMPLATES  = $SCOUT_HOME/templates
 
 | 形态 | 典型来源 | 搜索词模板 |
 |---|---|---|
-| project_position | EURAXESS / FindAPhD / jobs.ac.uk | `PhD [must_keyword] [nice_keyword] funded` |
-| pi_open_call | 院系页 / PI 主页 | `[must_keyword] PhD position research group` |
-| pi_cold_email | Google Scholar / 实验室主页 | `[must_keyword] author:` (Scholar) → `[pi_name] lab openings` |
-| cdt_dtp | CDT / DTP 页面 | `doctoral training [must_keyword] PhD studentship` |
-| msca_dn | EURAXESS MSCA filter | `MSCA Doctoral Network [must_keyword] PhD` |
-| outbound_scholarship | 奖学金 + 院系页 | `[scholarship_name] PhD [must_keyword] supervisor` |
-| industrial_phd | 企业 / 大学联合岗位 | `industrial PhD [must_keyword] funded` |
+| project_position | EURAXESS / FindAPhD / jobs.ac.uk | `PhD [a_level_keyword] [b_level_keyword] funded` |
+| pi_open_call | 院系页 / PI 主页 | `[a_level_keyword] PhD position research group` |
+| pi_cold_email | Google Scholar / 实验室主页 | `[a_level_keyword] author:` (Scholar) → `[pi_name] lab openings` |
+| cdt_dtp | CDT / DTP 页面 | `doctoral training [a_level_keyword] PhD studentship` |
+| msca_dn | EURAXESS MSCA filter | `MSCA Doctoral Network [a_level_keyword] PhD` |
+| outbound_scholarship | 奖学金 + 院系页 | `[scholarship_name] PhD [a_level_keyword] supervisor` |
+| industrial_phd | 企业 / 大学联合岗位 | `industrial PhD [a_level_keyword] funded` |
 
 **pi_cold_email 特殊流程**（与其他形态不同）：
 
-1. Google Scholar 搜 `[must_keyword]`，过滤近 3 年高发文者 → 提取 PI 名 + 机构 + 近期论文
+1. Google Scholar 搜 `[a_level_keyword]`，过滤近 3 年高发文者 → 提取 PI 名 + 机构 + 近期论文
 2. 对每个 PI 找其实验室主页 / 院系主页
 3. 主页找 "openings" / "join us" / "PhD positions" 段
 4. 输出 **PI 卡片**（不是岗位卡片）：见 `templates/phd-eval-template.md` 备用模板
@@ -112,19 +112,19 @@ probe_queries（默认 1）独立保留，不能因预算挤占砍掉
 
 ### 单形态内的查询模板（3 轮）
 
-每形态用 `keywords.md` 里**该形态启用的** must / nice 关键词组合：
+每形态用 `keywords.md` 里**该形态启用的** A 级 / B 级 关键词组合：
 
 ```
-轮 1: 主 must × 形态词模板（最广覆盖）
-轮 2: 主 must × top-2 nice 关键词（适中聚焦）
-轮 3: 第二 must × 形态词模板（覆盖另一方向）
+轮 1: 主 A 级 × 形态词模板（最广覆盖）
+轮 2: 主 A 级 × top-2 B 级关键词（适中聚焦）
+轮 3: 第二 A 级 × 形态词模板（覆盖另一方向）
 ```
 
 规则：
 
-- 不做 `must × must` 组合（太窄）
-- nice 只配 must 出现，不单飞
-- 若只有 1 个 must keyword → 跳过轮 3，节省预算
+- 不做 `A × A` 组合（太窄）
+- B 级只配 A 级 出现，不单飞
+- 若只有 1 个 A 级关键词 → 跳过轮 3，节省预算
 
 ### 时效性
 
@@ -133,7 +133,7 @@ probe_queries（默认 1）独立保留，不能因预算挤占砍掉
 每条 query 末尾追加 `[current_year] OR [next_year]`。例：
 
 ```
-PhD [must_keyword] [nice_keyword] funded 2026 OR 2027
+PhD [a_level_keyword] [b_level_keyword] funded 2026 OR 2027
 ```
 
 例外：`pi_cold_email` 的 Google Scholar 搜索不加年份（影响 author filter）。
@@ -160,8 +160,8 @@ PhD [must_keyword] [nice_keyword] funded 2026 OR 2027
 
 失败时回退顺序：
 
-1. 换 must 关键词的 L1 变体重跑一轮（仍计入预算）
-2. 改用 nice 关键词补搜 1 轮，**但 nice 命中不算 must**
+1. 换 A 级关键词的 L1 变体重跑一轮（仍计入预算）
+2. 改用 B 级关键词补搜 1 轮，**但 B 级命中不算 A 级**
 3. 仍失败 → 在日志记 `no_eligible_candidate`，本形态结束（不无限补搜）
 
 成功定义：≥1 条通过 Step 4-5 过滤的候选。
@@ -188,9 +188,9 @@ PhD [must_keyword] [nice_keyword] funded 2026 OR 2027
 
 对每个启用形态，主搜完后追加一轮：
 
-- `institutions` 非空 → 对每个机构拼接 `[机构名] PhD [must_keyword]` 跑一次
-- `sites` 非空 → 对每个 site 跑 `site:[domain] PhD [must_keyword]`
-- `regions_focus` 非空 → 对每个区域拼接 `[country/region] PhD [must_keyword] funded`
+- `institutions` 非空 → 对每个机构拼接 `[机构名] PhD [a_level_keyword]` 跑一次
+- `sites` 非空 → 对每个 site 跑 `site:[domain] PhD [a_level_keyword]`
+- `regions_focus` 非空 → 对每个区域拼接 `[country/region] PhD [a_level_keyword] funded`
 
 追加搜索的候选合并进主搜候选池，统一进入 Step 4 过滤。匹配规则不变。
 
@@ -205,7 +205,7 @@ PhD [must_keyword] [nice_keyword] funded 2026 OR 2027
 执行 1 次通用 Google 搜索（**不带任何 site 过滤**）：
 
 ```
-[must_keyword] PhD position [current_year_or_next_year]
+[a_level_keyword] PhD position [current_year_or_next_year]
 ```
 
 从结果前 30 条提取 domain 分布。规则：
@@ -230,16 +230,16 @@ discovered_sources（日志） → 用户在 Notion 标"要" ≥3 次该源候�
 
 过滤规则：
 
-1. 至少命中 1 个 `must` 关键词。
-2. 支撑关键词命中率 `matched_nice / total_relevant_nice >= match_threshold`。
-3. 不命中 `exclude` 中的硬排除词。
+1. 至少命中 1 个 `A 级` 关键词。
+2. 支撑关键词（B 级）命中率 `matched_b_level / total_relevant_b_level >= match_threshold`。
+3. 不命中 `C 级` 中的硬排除词。
 4. 满足 funding rule。
 5. 满足 region rule 和 language rule；若信息缺失，降级为待确认，不直接通过 A 级。
 
 匹配分格式：
 
 ```
-硬性 X/N · 支撑 Y/M · 总 Z%
+A 级 X/N · B 级 Y/M · 总 Z%
 ```
 
 ---
@@ -347,7 +347,7 @@ discovered_sources（日志） → 用户在 Notion 标"要" ≥3 次该源候�
 
 日志 schema 可由 AI 调整，但必须能支持 `/phd-keyword-optimize` 归因：
 
-- 本次使用的 must / nice / exclude
+- 本次使用的 A 级 / B 级 / C 级
 - 本次使用的 preferred_sources（institutions / sites / regions_focus）
 - 搜索 query（含探测搜索那一条）
 - 候选 URL

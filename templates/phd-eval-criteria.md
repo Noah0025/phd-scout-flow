@@ -8,7 +8,7 @@
 
 同时满足：
 
-- 强方向匹配：命中 must，且支撑关键词覆盖充足。
+- 强方向匹配：命中 A 级，且支撑关键词覆盖充足。
 - 资金信息清楚，符合 profile 的 funding rule。
 - 开始时间窗和截止日期可行。
 - 形态符合用户启用的 opportunity type。
@@ -36,13 +36,13 @@ B 的含义：可以进 Inbox，但不要排在 A 前面。
 
 出现任一情况：
 
-- 没有命中 must 关键词。
+- 没有命中 A 级关键词。
 - 支撑关键词覆盖明显不足。
 - funding 与 profile 硬门槛冲突。
 - deadline 已过，且没有 rolling / open call 信息。
 - 页面显示 closed / filled。
 - 信息缺失太多，无法判断。
-- 与 exclude 词或负向反馈特征高度重合。
+- 与 C 级关键词或负向反馈特征高度重合。
 
 C 的含义：通常不写入 Notion；若写入，必须标明原因。
 
@@ -61,8 +61,8 @@ C 的含义：通常不写入 Notion；若写入，必须标明原因。
 
 `pi_cold_email` 候选没有 funding / deadline 字段，不能套用上面 A/B/C 规则。改用：
 
-- **A**：PI 近期论文与 must keyword 强匹配（≥2 篇近 3 年相关）+ 主页明确写"accepting PhD students" / 有 openings 段
-- **B**：PI 近期论文与 must keyword 相关（≥1 篇近 3 年）但**主页未明示招生**——可以尝试 cold email
+- **A**：PI 近期论文与 A 级关键词 强匹配（≥2 篇近 3 年相关）+ 主页明确写"accepting PhD students" / 有 openings 段
+- **B**：PI 近期论文与 A 级关键词 相关（≥1 篇近 3 年）但**主页未明示招生**——可以尝试 cold email
 - **C**：论文匹配度弱 / 多年无相关产出 / 课题组明确写"not accepting"
 
 cold email 形态的"链接验证"指的是 **PI 主页可访问 + 邮箱可读取**。两者都验不了 → 最高 B。

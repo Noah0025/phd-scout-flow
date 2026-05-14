@@ -36,7 +36,7 @@ ls "$HOME/.phd-scout/logs"/scout-*.yaml 2>/dev/null
 日志中至少提取：
 
 - query
-- must / nice / exclude
+- A 级 / B 级 / C 级
 - matched keywords
 - missing keywords
 - candidate title
@@ -76,7 +76,7 @@ ls "$HOME/.phd-scout/logs"/scout-*.yaml 2>/dev/null
 
 统计：
 
-- 高频 must / nice 命中词
+- 高频 A 级 / B 级 命中词
 - 常出现的形态
 - 常出现的国家或地区
 - 常出现的 funding 信号
@@ -104,19 +104,19 @@ ls "$HOME/.phd-scout/logs"/scout-*.yaml 2>/dev/null
 
 | 项目 | 当前 | 建议 | 证据 | 影响 |
 |---|---|---|---|---|
-| [keyword] | nice | must | 正向样本 N 次 | 提高硬筛权重 |
+| [keyword] | B | A | 正向样本 N 次 | 提高硬筛权重 |
 
 ### 表 2：建议新增关键词
 
 | 新词 | 层级 | 归属 L0 | 证据 | 建议分区 |
 |---|---|---|---|---|
-| [new_keyword] | L1/L2 | [seed] | 正向样本 N 次 | nice |
+| [new_keyword] | L1/L2 | [seed] | 正向样本 N 次 | B |
 
 ### 表 3：建议降级 / 排除
 
 | 项目 | 当前 | 建议 | 证据 | 风险 |
 |---|---|---|---|---|
-| [keyword_or_feature] | nice | exclude | 负向样本 N 次 | 可能误杀相邻方向 |
+| [keyword_or_feature] | B | C | 负向样本 N 次 | 可能误杀相邻方向 |
 
 ### 表 4（仅当源信号显著时）：建议调整 preferred_sources
 
@@ -172,7 +172,7 @@ cp "$HOME/.phd-scout/keywords.md" "$HOME/.phd-scout/keywords.md.bak-YYYY-MM-DD"
 ```
 
 2. 按确认结果更新：
-   - must / nice / exclude 分区
+   - A 级 / B 级 / C 级 分区
    - L0/L1/L2 树
    - changelog
 

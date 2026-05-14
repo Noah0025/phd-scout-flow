@@ -9,12 +9,12 @@ run:
   match_threshold: 0.6
 
 keywords_used:
-  must:
+  a_level:
     - "[your_core_method]"
-  nice:
+  b_level:
     - "[your_problem_domain]"
     - "[related_subproblem]"
-  exclude:
+  c_level:
     - "[too_broad_keyword]"
 
 queries:
@@ -32,12 +32,12 @@ candidates:
     url: "https://example.edu/phd-position"
     deadline: "YYYY-MM-DD"
     matched_keywords:
-      must:
+      a_level:
         - "[your_core_method]"
-      nice:
+      b_level:
         - "[your_problem_domain]"
     missing_keywords:
-      nice:
+      b_level:
         - "[related_subproblem]"
     score:
       hard: "1/2"
@@ -64,4 +64,4 @@ discovered_sources:
     sample_urls:
       - "https://example-jobs-platform.org/phd-001"
       - "https://example-jobs-platform.org/phd-007"
-    context: "通用查询 'PhD [must_keyword] 2026' 命中"
+    context: "通用查询 'PhD [a_level_keyword] 2026' 命中"
