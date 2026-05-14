@@ -24,11 +24,16 @@ matching:
 
 questionnaire:
   directions:
-    - seed: "[your_core_method]"
-      priority: "A" # A | B | C
-      evidence: "[source file or note]"
+    # seed_type 区分用途：
+    #   search_anchor — 问题域类（如 "urban water" / "wastewater"）适合做搜索主键，PhD 招聘高频出现
+    #   weight_only   — 方法类（如 "GWR" / "Random Forest"）仅用于评估加权，不做搜索主键（PhD 招聘描述少出现方法名）
     - seed: "[your_problem_domain]"
-      priority: "B"
+      priority: "A"
+      seed_type: "search_anchor"
+      evidence: "[source file or note]"
+    - seed: "[your_core_method]"
+      priority: "A"
+      seed_type: "weight_only"
       evidence: "[source file or note]"
   regions:
     mode: "open"

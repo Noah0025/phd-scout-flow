@@ -56,11 +56,11 @@ TEMPLATES  = $SCOUT_HOME/templates
 <title_normalized> + <institution_normalized>
 ```
 
-若 Notion MCP 不可用：
+### Notion 不可用的三种情况（区分处理）
 
-- 跳过远端去重。
-- 使用本地日志中的历史 URL 和标题做弱去重。
-- 在最终报告中标记 Notion 未写入。
+- **(a) MCP 完全不可用**（连不上 / 未配置）→ 跳过远端去重 + 用本地日志弱去重 + 终端报告标"Notion 未连接"
+- **(b) inbox_database_id 缺失或为占位符**（如 `[PENDING]`）→ 提示用户先完成 init Step 7，并跳过本步骤；scout 仍可跑（只写本地日志）
+- **(c) DB ID 有但权限不够**（401 / 403）→ 同 (a) 处理 + 报告里建议用户检查 integration access
 
 ---
 
@@ -68,15 +68,23 @@ TEMPLATES  = $SCOUT_HOME/templates
 
 按 profile 中启用的形态循环。
 
-| 形态 | 典型来源 | 搜索词模板 |
+### 搜索 query 构造规则（重要）
+
+- **主搜 query 只用 `seed_type: search_anchor` 的关键词**——方法类（`weight_only`）不进搜索 query，只在 Step 4 评估时加权
+- **所有主搜 query 必须带 `site:` 过滤**到默认主源（通用 Google 找学术职位质量低）
+- **缩写关键词用 `"full name" OR ABBR` 组合**（防 Google 忽略缩写如 "GWR"）
+
+### 形态搜索词模板（占位符 `[anchor]` = 一个 A 级 search_anchor 关键词）
+
+| 形态 | 默认主源 site | 搜索词模板 |
 |---|---|---|
-| project_position | EURAXESS / FindAPhD / jobs.ac.uk | `PhD [a_level_keyword] [b_level_keyword] funded` |
-| pi_open_call | 院系页 / PI 主页 | `[a_level_keyword] PhD position research group` |
-| pi_cold_email | Google Scholar / 实验室主页 | `[a_level_keyword] author:` (Scholar) → `[pi_name] lab openings` |
-| cdt_dtp | CDT / DTP 页面 | `doctoral training [a_level_keyword] PhD studentship` |
-| msca_dn | EURAXESS MSCA filter | `MSCA Doctoral Network [a_level_keyword] PhD` |
-| outbound_scholarship | 奖学金 + 院系页 | `[scholarship_name] PhD [a_level_keyword] supervisor` |
-| industrial_phd | 企业 / 大学联合岗位 | `industrial PhD [a_level_keyword] funded` |
+| project_position | euraxess.ec.europa.eu / findaphd.com / jobs.ac.uk | `site:euraxess.ec.europa.eu PhD [anchor] funded` |
+| pi_open_call | 院系页 / PI 主页 | `PhD position [anchor] research group accepting students` |
+| pi_cold_email | scholar.google.com / 实验室主页 | `site:scholar.google.com [anchor] author:` → followup: `[pi_name] lab openings` |
+| cdt_dtp | UKRI / cdt 站 | `site:ukri.org OR site:jobs.ac.uk doctoral training [anchor] PhD studentship` |
+| msca_dn | EURAXESS MSCA | `site:euraxess.ec.europa.eu MSCA Doctoral Network [anchor]` |
+| outbound_scholarship | CSC / DAAD / Chevening | `site:daad.de OR site:csc.edu.cn PhD [anchor] supervisor` |
+| industrial_phd | ANRT (CIFRE) / industry | `site:anrt.asso.fr industrial PhD [anchor]` 或 `[anchor] industrial PhD funded` |
 
 **pi_cold_email 特殊流程**（与其他形态不同）：
 
@@ -133,19 +141,21 @@ focus 形态 B: 6
 
 ### 单形态内的查询模板（3 轮）
 
-每形态用 `keywords.md` 里**该形态启用的** A 级 / B 级 关键词组合：
+**只用 `seed_type: search_anchor` 的 A 级关键词进搜索 query**。"主 A" / "第二 A" 按 keywords.md 中 search_anchor seed 的出现顺序（相当于用户认为最重要的在前）。
 
 ```
-轮 1: 主 A 级 × 形态词模板（最广覆盖）
-轮 2: 主 A 级 × top-2 B 级关键词（适中聚焦）
-轮 3: 第二 A 级 × 形态词模板（覆盖另一方向）
+轮 1: 主 A anchor × 形态词模板（最广覆盖）
+轮 2: 主 A anchor × 1 个 B anchor（适中聚焦，B 必须也是 search_anchor 类型）
+轮 3: 第二 A anchor × 形态词模板（覆盖另一方向）
 ```
 
 规则：
 
-- 不做 `A × A` 组合（太窄）
-- B 级只配 A 级 出现，不单飞
-- 若只有 1 个 A 级关键词 → 跳过轮 3，节省预算
+- 不做 `A anchor × A anchor` 组合（太窄，覆盖面缩小）
+- `weight_only` 关键词（方法类）**绝不进搜索 query**（避免噪音）
+- B 级搜索补搜也只用 search_anchor 类
+- 若只有 1 个 A anchor → 跳过轮 3，节省预算
+- **缩写处理**：若 anchor 是缩写（如 "GWR" / "LCA"），query 自动改为 `"全称" OR 缩写` 组合，例 "geographically weighted regression" OR GWR
 
 ### 时效性
 
@@ -258,14 +268,20 @@ discovered_sources（日志） → 用户在 Notion 标"要" ≥3 次该源候�
 过滤规则：
 
 1. **C 级硬排除**：命中任何 C 级关键词 → 整体排除（除非 profile.matching.c_level_is_hard_exclude = false）。
-2. **加权打分**：
+2. **加权打分**（A 级 + B 级 都计入，**含 weight_only 方法关键词**）：
    ```
    a_weight = profile.matching.a_weight（默认 2）
    b_weight = profile.matching.b_weight（默认 1）
+   
+   A_hits = 候选描述里命中的 A 级关键词数（search_anchor + weight_only 都算）
+   B_hits = 候选描述里命中的 B 级关键词数
+   A_total_relevant = 该形态启用的 A 级关键词总数（含 weight_only）
+   B_total_relevant = 该形态启用的 B 级关键词总数
+   
    weighted_score = (a_weight × A_hits + b_weight × B_hits)
                     / (a_weight × A_total_relevant + b_weight × B_total_relevant)
    ```
-   `A_total_relevant` / `B_total_relevant` = 该形态在 keywords.md 中标记可用的关键词总数（去除 C 级）。
+   注意：`weight_only` 方法关键词**不进搜索 query**，但**进评估打分**——这是 search_anchor / weight_only 分类的核心目的：让搜索范围广，但评估贴近用户专业。
 3. **通过**：`weighted_score ≥ match_threshold`（默认 0.6）。
 4. **A 级零命中 + B 级覆盖低** = 通常评级为 C（见 eval-criteria）。但**不是硬过滤**——若 weighted_score 仍 ≥ threshold（罕见但可能），候选保留进入评估，由评级规则决定优先级。
 5. 满足 funding rule。

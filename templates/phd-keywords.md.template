@@ -15,23 +15,30 @@ Last updated: YYYY-MM-DD
 - `B` keywords: **优先级次之** — A 失败时补搜，评估时支撑分（默认 weight = 1）。
 - `C` keywords: **硬排除** — 命中 C 级整体排除（profile.matching.c_level_is_hard_exclude 默认 true）。init 可主动标，optimize 反馈也会沉淀。
 
+**seed_type 区分**（A / B 级关键词都有此属性）：
+
+- `search_anchor`：问题域类（如 "urban water" / "wastewater"）—— **用作搜索主键** + 评估加权
+- `weight_only`：方法类（如 "GWR" / "Random Forest"）—— **不进搜索 query**，只在评估时加权（避免搜索结果跑偏）
+
 ---
 
 ## A
 
-| keyword | level | parent | evidence | notes |
-|---|---|---|---|---|
-| [your_core_method] | L0 | - | [source] | [why it matters] |
-| [method_variant] | L1 | [your_core_method] | init expansion | synonym / abbreviation |
+| keyword | level | parent | type | evidence | notes |
+|---|---|---|---|---|---|
+| [your_problem_domain] | L0 | - | search_anchor | [source] | 搜索主键，PhD 招聘高频 |
+| [domain_synonym] | L1 | [your_problem_domain] | search_anchor | init expansion | |
+| [your_core_method] | L0 | - | weight_only | [source] | 仅评估加权，不做搜索主键 |
+| [method_variant] | L1 | [your_core_method] | weight_only | init expansion | synonym / abbreviation |
 
 ---
 
 ## B
 
-| keyword | level | parent | evidence | notes |
-|---|---|---|---|---|
-| [your_problem_domain] | L0 | - | [source] | useful but not hard filter |
-| [related_subproblem] | L2 | [your_problem_domain] | init expansion | narrower topic |
+| keyword | level | parent | type | evidence | notes |
+|---|---|---|---|---|---|
+| [your_supporting_topic] | L0 | - | search_anchor | [source] | 弱支撑搜索 |
+| [related_subproblem] | L2 | [your_supporting_topic] | search_anchor | init expansion | narrower topic |
 
 ---
 

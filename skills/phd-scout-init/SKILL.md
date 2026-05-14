@@ -110,30 +110,40 @@ fi
 
 ## Step 2 — 生成 L0 Seed（批量呈现 + 用户标异议项）
 
-输出一张候选表，**AI 默认全标 A**，让用户只标异议项（而不是逐项确认）。
+输出一张候选表，**AI 默认全标 A**，**AI 根据语义自动判 seed_type**（search_anchor / weight_only），让用户只标异议项。
 
-| seed | 来源证据 | AI 草案 |
-|---|---|---|
-| [your_core_method] | [[source_or_file]] | A |
-| [your_problem_domain] | [[source_or_file]] | A |
-| [your_supporting_tool] | [[source_or_file]] | A |
-| ... | ... | A |
+| # | seed | 来源证据 | AI 草案 (priority) | AI 草案 (seed_type) |
+|---|---|---|---|---|
+| 1 | [your_problem_domain] | [[source_or_file]] | A | search_anchor |
+| 2 | [your_core_method] | [[source_or_file]] | A | weight_only |
+| 3 | [your_supporting_topic] | [[source_or_file]] | A | search_anchor |
+| ... | ... | A | (auto) |
 
-规则：
+### AI 判 seed_type 规则
+
+- **search_anchor**：问题域 / 应用领域 / 学科方向（如 "urban water" / "stormwater" / "wastewater" / "climate adaptation" / "LCA" / "membrane separation"）—— PhD 招聘描述里高频出现的词
+- **weight_only**：方法 / 模型 / 工具（如 "GWR" / "Random Forest" / "Sensitivity Analysis" / "Spatial Durbin Model"）—— 学术论文出现多，PhD 招聘描述少有
+
+不确定时默认 search_anchor。让用户调整。
+
+### 规则
 
 - L0 必须来自输入资料，不凭空添加。
 - 每个 seed 要有证据来源。
-- **AI 默认全标 A**（优先级最高），用户只标异议项。
+- **AI 默认全标 priority=A**，用户只标异议项。
 - 用户回复格式：
-  - "OK" 或 "确认" → 接受默认（全 A）
-  - "改 3,7 为 B" → 把 seed 3 和 7 改 B（支撑分）
+  - "OK" / "确认" → 接受默认
+  - "改 3,7 为 B" → 改 priority
+  - "5 改 weight_only" / "5 改 anchor" → 改 seed_type
   - "删 5" → seed 5 不进入关键词树
   - "5 改 C" → seed 5 标 C 级（明确排除）
-  - "加 [keyword] 到 A" → 用户补充 seed
+  - "加 [keyword] (A, anchor)" → 用户补充 seed
 
 不接受"逐项问"模式——用户标完异议后整体进入 Step 3。
 
-⚠️ 注意：A 级是**优先级**不是 hard hit 门槛（详见 README "命名契约"段）。
+⚠️ 注意：
+- A 级是**优先级**不是 hard hit 门槛
+- seed_type 决定**搜索是否用该词**（search_anchor 进搜索 query；weight_only 只评估加权）
 
 ---
 
