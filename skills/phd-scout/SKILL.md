@@ -178,15 +178,36 @@ PhD [a_level_keyword] [b_level_keyword] funded 2026 OR 2027
 
 ## Step 3 — 搜索与候选提取
 
-按 Step 2.5 分配的预算执行 3 轮主查询。
+按 Step 2.5 分配的预算执行 3 轮主查询。每查询取前 `results_per_query` 条（默认 20）。
 
-每查询取前 `results_per_query` 条（默认 20）。
+### Query 简化回退（防搜索工具不稳定）
+
+不同 AI 工具的 WebSearch 对复杂 syntax（`site:` + `"phrase"` + `OR`）支持不一致——同一 query 可能这次 10 条结果、下次 0 条。
+
+**规则**：
+
+- 复杂 query 返回 **0 条** → 自动降级一次，去掉 `site:` 过滤 + 去掉引号 + 去 OR 改空格，重试 1 次
+- 例：`site:euraxess.ec.europa.eu PhD "urban water" funded 2026 OR 2027`
+       → 简化为 `EURAXESS PhD urban water funded 2026`
+- 简化后仍 0 条 → 该 query 计为失败，继续下一 query（不再重试）
+- 简化回退**消耗主预算**但**不算 cooldown**（重试视为同一原查询）
+
+### Meta Page 过滤（简化 query 副作用）
+
+简化 query 失去 site filter 后，结果可能混入"meta / portal / list"页面（非具体岗位）。Step 3 候选提取时按 URL 模式跳过：
+
+- `worldwide/<region>/news/` 路径 → portal 新闻列表
+- 标题含 `1000+`, `120+`, `20+`, `over N` PhD positions → 综合岗位列表
+- URL 含 `/index/`, `/main/`, `/about/` → portal page
+- 域名是 EURAXESS / FindAPhD 主页本身（无 `/jobs/` 路径）→ portal
+
+被跳过的 meta page 不计入候选数，**但 domain 仍可被 Step 3.6 探测搜索的 discovered_sources 捕获**。
 
 ### "失败"定义与回退
 
 一个形态被视为 **失败** 当且仅当：
 
-- 3 轮主查询累计候选 < 2 条 **或**
+- 3 轮主查询累计候选 < 2 条 **或**（meta page 过滤后）
 - 候选全部通过过滤后（Step 4）剩 0 条
 
 失败时回退顺序：
