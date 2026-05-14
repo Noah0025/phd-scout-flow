@@ -2,19 +2,32 @@
 
 用于 `/phd-scout` 给候选机会打 A/B/C 评级。规则服务于初筛，不代表录取概率。
 
-⚠️ 关键词分级（A 级 / B 级 / C 级）是**优先级 + 加权**，不是 hard hit 门槛。评级分以下三档基于加权分 + 其他条件综合判断。
+⚠️ **评估视角**：项目角度 — 看"项目需要的能力 / LNZ 能覆盖多少"，不是"LNZ 库 / 项目命中"。
+
+LLM 综合判，不靠硬数学阈值。
+
+---
+
+## 核心度量：match_rate（项目角度覆盖率）
+
+```
+job_signals = LLM 从 PhD 完整描述抽取的关键能力点 (3-8 个)
+covered_signals = LNZ 关键词库（含 A/B 级 + search_anchor/weight_only）覆盖的 signal 数
+match_rate = covered_signals / |job_signals|
+```
 
 ---
 
 ## A — 优先调研
 
-同时满足：
+LLM 综合判（不是死阈值）：
 
-- 加权匹配分 ≥ 0.75（A 级命中多 + B 级覆盖好）。
-- 资金信息清楚，符合 profile 的 funding rule。
-- 开始时间窗和截止日期可行。
-- 形态符合用户启用的 opportunity type。
-- 原链接已验证，核心信息不依赖搜索摘要。
+- `match_rate ≥ 0.6` 是参考线（覆盖 ≥ 60% job_signals）
+- A 级 search_anchor 至少 1 个真实命中（方向对上，不是边缘擦边）
+- 资金信息清楚，符合 profile 的 funding rule
+- 开始时间窗和截止日期可行
+- 形态符合用户启用的 opportunity type
+- 原链接已验证，cross-check 通过
 
 A 的含义：值得进入人工深调研。
 
@@ -24,12 +37,13 @@ A 的含义：值得进入人工深调研。
 
 满足大部分条件，但存在一条明显不确定或轻微不符：
 
-- 加权匹配分在 [threshold, 0.75) 之间（够通过过滤，但不够强）。
-- funding 写法不清楚，需要人工确认。
-- deadline / start window 信息缺失。
-- A 级命中弱但 B 级覆盖好（方向相邻而非正中）。
-- 链接可访问但页面信息分散。
-- 地区或语言规则需要进一步确认。
+- `match_rate` 在 [0.3, 0.6) 之间（部分覆盖，但有方向相邻信号）
+- A 级 search_anchor 命中弱，但 weight_only 方法类命中多（方向相邻 + 专业匹配深）
+- funding 写法不清楚，需要人工确认
+- deadline / start window 信息缺失
+- 链接可访问但页面信息分散
+- 地区或语言规则需要进一步确认
+- 链接验证失败但其他信号强（Step 5 标 `link_unverified`）
 
 B 的含义：可以进 Inbox，但不要排在 A 前面。
 
@@ -39,13 +53,14 @@ B 的含义：可以进 Inbox，但不要排在 A 前面。
 
 出现任一情况：
 
-- A 级 + B 级命中都很少（加权分接近或低于 threshold）。
-- funding 与 profile 硬门槛冲突。
-- deadline 已过，且没有 rolling / open call 信息。
-- 页面显示 closed / filled。
-- 信息缺失太多，无法判断。
-- 命中 C 级关键词（profile.c_level_is_hard_exclude=true 时直接排除，否则降级到 C）。
-- 与负向反馈特征高度重合。
+- `match_rate < 0.3`（覆盖太少）
+- A 级 + B 级命中都为 0（毫无相关度，Step 4 已排除）
+- funding 与 profile 硬门槛冲突
+- deadline 已过，且没有 rolling / open call 信息
+- 页面显示 closed / filled
+- 信息缺失太多，无法判断
+- 命中 C 级关键词（profile.c_level_is_hard_exclude=true 时直接排除，否则降级到 C）
+- 与负向反馈特征高度重合
 
 C 的含义：通常不写入 Notion；若写入，必须标明原因。
 
@@ -57,7 +72,7 @@ C 的含义：通常不写入 Notion；若写入，必须标明原因。
 - 不因为机构名或排名单独升为 A。
 - 不因为关键词数量多就自动升为 A；关键词必须和岗位主题发生真实关系。
 - 不能验证链接时，最高为 B。
-- **A 级零命中也不自动判 C**：只要加权分通过 threshold（B 级覆盖好），仍可能是 B 级评级。最终评级看综合分 + 信息完整度。
+- **数学阈值（0.3 / 0.6）是参考线，不是死过滤**——LLM 综合所有信号（match_rate + A_hits 真实性 + funding 完整度 + 形态对齐）判最终评级。
 
 ---
 

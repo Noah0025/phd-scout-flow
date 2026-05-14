@@ -261,39 +261,29 @@ discovered_sources（日志） → 用户在 Notion 标"要" ≥3 次该源候�
 
 ---
 
-## Step 4 — 加权匹配过滤
+## Step 4 — 硬性筛选（只过滤死亡条件，不做数学打分）
 
-**A/B/C 是优先级，不是硬门槛**。A 级命中加权大，B 级支撑，C 级是唯一硬排除。
+**不做加权分硬过滤**——评估视角应该是"项目需要什么 / LNZ 覆盖多少"，**用关键词库做分母会过度稀释**（库越大分越低）。匹配度判断挪到 Step 6 评估时由 LLM 综合判。
 
-过滤规则：
+Step 4 只过滤死亡条件：
 
-1. **C 级硬排除**：命中任何 C 级关键词 → 整体排除（除非 profile.matching.c_level_is_hard_exclude = false）。
-2. **加权打分**（A 级 + B 级 都计入，**含 weight_only 方法关键词**）：
-   ```
-   a_weight = profile.matching.a_weight（默认 2）
-   b_weight = profile.matching.b_weight（默认 1）
-   
-   A_hits = 候选描述里命中的 A 级关键词数（search_anchor + weight_only 都算）
-   B_hits = 候选描述里命中的 B 级关键词数
-   A_total_relevant = 该形态启用的 A 级关键词总数（含 weight_only）
-   B_total_relevant = 该形态启用的 B 级关键词总数
-   
-   weighted_score = (a_weight × A_hits + b_weight × B_hits)
-                    / (a_weight × A_total_relevant + b_weight × B_total_relevant)
-   ```
-   注意：`weight_only` 方法关键词**不进搜索 query**，但**进评估打分**——这是 search_anchor / weight_only 分类的核心目的：让搜索范围广，但评估贴近用户专业。
-3. **通过**：`weighted_score ≥ match_threshold`（默认 0.6）。
-4. **A 级零命中 + B 级覆盖低** = 通常评级为 C（见 eval-criteria）。但**不是硬过滤**——若 weighted_score 仍 ≥ threshold（罕见但可能），候选保留进入评估，由评级规则决定优先级。
-5. 满足 funding rule。
-6. 满足 region rule 和 language rule；若信息缺失，降级为待确认，不直接给 A 级评级。
+1. **C 级硬排除**：命中任何 C 级关键词 → 整体排除（除非 profile.matching.c_level_is_hard_exclude = false）
+2. **funding 不符** → 排除（profile.questionnaire.funding.rule）
+3. **deadline 已过且无 rolling 标记** → 排除
+4. **明显过期年份信号**（防 EURAXESS 等排序不按 deadline 的坑）：候选描述/标题/URL 中出现 ≥3 年前的年份（如 2022/2023 当前 2026）→ 标 `likely_expired`，最高 B 级，必须 Step 5 验链确认
+5. **region rule / language rule**：硬性不符 → 排除；信息缺失 → 标"待确认"进入 Step 5
+6. **A 级 + B 级 keyword hits 都为 0** → 排除（毫无相关度）
 
-匹配分格式：
+通过 Step 4 → 进入 Step 4.5 跨形态去重 → Step 5 验链。
+
+匹配度的"绝对计数"仍要记录（供 Step 6 评估 + 日志归因用）：
 
 ```
-A 级 X/N · B 级 Y/M · 加权 Z%
+A_hits: 候选描述里命中的 A 级关键词列表（含 search_anchor + weight_only）
+B_hits: 候选描述里命中的 B 级关键词列表
 ```
 
-→ X = A_hits, N = A_total_relevant, Y = B_hits, M = B_total_relevant, Z = weighted_score × 100
+**不**生成 weighted_score——那是过度简化的伪指标（详见 Step 6 的"项目角度"评估）。
 
 ---
 
@@ -317,7 +307,7 @@ A 级 X/N · B 级 Y/M · 加权 Z%
 
 ---
 
-## Step 5 — 验链
+## Step 5 — 验链 + Cross-check
 
 对通过过滤的候选逐一打开原链接验证：
 
@@ -326,32 +316,80 @@ A 级 X/N · B 级 Y/M · 加权 Z%
 - title / institution 与候选一致
 - funding / deadline 没有被搜索摘要误读
 
-若普通抓取失败：
+### Cross-check（防 URL ID 不稳定的坑）
 
-- 尝试用可用浏览器工具打开。
-- 仍失败则标记为 `link_unverified`，优先级最高为 B。
+某些平台（如 EURAXESS）的 URL/ID 可能复用或失效，验链 fetched 的页面**可能不是搜索结果显示的那条**。验链时必须比对：
 
-404、closed、filled、deadline 已过且无 rolling 标记 → 排除。
+1. fetched 页面的 title 关键词 是否包含搜索摘要的 title 关键词（核心专业词，如 "urban water" / "stormwater"）
+2. fetched 页面的 institution 是否与搜索摘要的 institution 一致
+
+不一致 → **重搜本条候选**（用更精确的 query：`"title 关键词" institution`）；重搜失败 → 标 `link_unverified` 并降级到 B 级。
+
+### 抓取失败
+
+- 普通抓取失败 → 尝试浏览器工具
+- 仍失败 → 标记 `link_unverified`，最高 B 级
+
+### 排除条件
+
+- 404 / closed / filled
+- deadline 已过且无 rolling 标记
+- Cross-check 失败 + 重搜失败
+- 候选描述里的年份明显过旧（Step 4 已标 `likely_expired` 的候选要二次确认 deadline）
 
 ---
 
-## Step 6 — 评估与选择
+## Step 6 — 评估与选择（项目角度打分 + LLM 综合判 A/B/C）
 
 读取：
 
 - `templates/phd-eval-template.md`
 - `templates/phd-eval-criteria.md`
 
+### 项目角度匹配度（核心）
+
+**不用"LNZ 关键词库 / total"做分母**——库越大分越被稀释。视角颠倒：
+
+```
+1. LLM 从 PhD 完整描述（Step 5 fetched 全文）抽取 job_signals (3-8 个)：
+   - 研究方向 / 主题
+   - 关键方法 / 工具
+   - 申请条件中的硬技能要求
+   - PI 课题组的近期主题（如能识别）
+
+2. 看 LNZ 的关键词库（A 级 + B 级，含 weight_only 方法类）覆盖了多少个 signal：
+   match_rate = covered_signals / |job_signals|
+
+3. 例：Luleå PhD Urban Water Stormwater
+   job_signals = [urban water, stormwater quality, sampling, modelling,
+                  sustainable management, statistics, MSc engineering]  (7 个)
+   LNZ 命中 = urban water ✓ / stormwater ✓ / modelling ≈ / statistics ≈  (4 个 hits)
+   match_rate = 4/7 = 57%   ← 这是 LNZ "能贡献什么" 的实际度量
+```
+
+### LLM 综合判 A/B/C（按 phd-eval-criteria.md）
+
+不要把 match_rate 当硬阈值。LLM 综合看：
+
+- match_rate（项目角度覆盖率）
+- A 级 search_anchor 是否命中（方向是否真实对上）
+- weight_only 方法类是否命中（专业匹配深度）
+- funding 完整度
+- deadline 可行性
+- 形态符合度
+
+→ 综合判 A（优先调研）/ B（关注）/ C（不投入）。具体阈值参考 `phd-eval-criteria.md`。
+
 ### 写入决策（按 max_total_written_per_scout）
 
-不是”每形态各写 1 条”——按 `search.max_total_written_per_scout`（默认 1）跨形态选总 N 条最佳：
+不是"每形态各写 1 条"——按 `search.max_total_written_per_scout`（默认 1）跨形态选总 N 条最佳：
 
 ```
 1. 把所有形态通过 Step 4-5 的候选合并到一个池
-2. 按匹配分降序排序（pi_cold_email 用其特殊评级规则换算同等分）
+2. 按 LLM 综合评级排序（A > B > C），同级按 match_rate
 3. 取前 N 条（N = max_total_written_per_scout）
 4. 约束：单形态 ≤ max_written_per_type（默认 1，防一类占满）
-5. 若某形态被分配 0 条 → 日志记”该形态有候选但未入选”，不报”无合格新候选”
+5. 若某形态被分配 0 条 → 日志记"该形态有候选但未入选"，不报"无合格新候选"
 ```
 
 写入数量与噪音的权衡（用户在 profile 中调）：

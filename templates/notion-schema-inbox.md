@@ -13,7 +13,7 @@ Notion Inbox 是搜索结果的主界面。字段名建议保持不变，方便 
 | PI | Text | - | PI / group / program contact（PI cold email 必填） |
 | 资助 | Select | Funded (Stipend), Funded (Salary), Self-funded, Industrial, 未明 | funding signal；PI cold email 默认填"未明" |
 | 命中关键词 | Multi-select | 由 AI 写入 | matched keywords |
-| 匹配分 | Text | - | `A 级 X/N · B 级 Y/M · 总分 Z%` |
+| 匹配度 | Text | - | `A: kw1, kw2 · B: kw3 · 项目覆盖 X/Y signals (Z%)` |
 | 优先级 | Select | A, B, C | 初筛等级 |
 | Feedback | Select | 要, 不要, 观望 | 用户反馈，供 optimize 使用 |
 | 备注 | Text | - | 用户自由记录原因 |

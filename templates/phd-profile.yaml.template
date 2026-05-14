@@ -14,12 +14,12 @@ input_sources:
     - "[/absolute/path/to/cv_or_transcript]"
 
 matching:
-  threshold: 0.6      # allowed range: 0.4-0.8
-  # 加权打分（A 是优先级最高，不是硬门槛）：
-  #   weighted_score = (a_weight × A_hits + b_weight × B_hits) / (a_weight × A_total + b_weight × B_total)
-  # 候选通过过滤 = weighted_score ≥ threshold AND 不命中任何 C 级。
-  a_weight: 2         # A 级命中权重
-  b_weight: 1         # B 级命中权重
+  # 评估视角：从"项目角度"看 LNZ 能贡献什么（不用 LNZ 关键词库做分母）。
+  # match_rate = covered_job_signals / |job_signals|（LLM 在 Step 6 算）
+  # threshold 是给 LLM 的"参考线"，不是硬过滤——见 phd-eval-criteria.md 综合判。
+  threshold_hint: 0.5       # match_rate 参考线，仅作 LLM 评级 hint
+  a_weight: 2               # A 级权重（用于 LLM 综合打分时的相对重要性）
+  b_weight: 1               # B 级权重
   c_level_is_hard_exclude: true   # 命中任何 C 级 → 整体排除（保留 C 的硬规则）
 
 questionnaire:
