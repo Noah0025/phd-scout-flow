@@ -15,7 +15,7 @@ PI/课题组：[pi_or_group or unknown]
 命中关键词（B 级）：[kw_4]
 
 项目能力点（job_signals，LLM 从 PhD 描述抽取）：[signal_1, signal_2, signal_3, ...]
-项目角度覆盖率：[covered]/[total_signals] = [match_rate]%（LNZ 能覆盖项目需求的比例）
+项目角度覆盖率：[covered]/[total_signals] = [match_rate]%（用户能覆盖项目需求的比例）
 
 优先级：[A/B/C]
 

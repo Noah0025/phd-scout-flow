@@ -263,7 +263,7 @@ discovered_sources（日志） → 用户在 Notion 标"要" ≥3 次该源候�
 
 ## Step 4 — 硬性筛选（只过滤死亡条件，不做数学打分）
 
-**不做加权分硬过滤**——评估视角应该是"项目需要什么 / LNZ 覆盖多少"，**用关键词库做分母会过度稀释**（库越大分越低）。匹配度判断挪到 Step 6 评估时由 LLM 综合判。
+**不做加权分硬过滤**——评估视角应该是"项目需要什么 / 用户覆盖多少"，**用关键词库做分母会过度稀释**（库越大分越低）。匹配度判断挪到 Step 6 评估时由 LLM 综合判。
 
 Step 4 只过滤死亡条件：
 
@@ -348,7 +348,7 @@ B_hits: 候选描述里命中的 B 级关键词列表
 
 ### 项目角度匹配度（核心）
 
-**不用"LNZ 关键词库 / total"做分母**——库越大分越被稀释。视角颠倒：
+**不用"用户关键词库 / total"做分母**——库越大分越被稀释。视角颠倒：
 
 ```
 1. LLM 从 PhD 完整描述（Step 5 fetched 全文）抽取 job_signals (3-8 个)：
@@ -357,14 +357,14 @@ B_hits: 候选描述里命中的 B 级关键词列表
    - 申请条件中的硬技能要求
    - PI 课题组的近期主题（如能识别）
 
-2. 看 LNZ 的关键词库（A 级 + B 级，含 weight_only 方法类）覆盖了多少个 signal：
+2. 看用户 的关键词库（A 级 + B 级，含 weight_only 方法类）覆盖了多少个 signal：
    match_rate = covered_signals / |job_signals|
 
-3. 例：Luleå PhD Urban Water Stormwater
+3. 例：[example_phd_title]
    job_signals = [urban water, stormwater quality, sampling, modelling,
                   sustainable management, statistics, MSc engineering]  (7 个)
-   LNZ 命中 = urban water ✓ / stormwater ✓ / modelling ≈ / statistics ≈  (4 个 hits)
-   match_rate = 4/7 = 57%   ← 这是 LNZ "能贡献什么" 的实际度量
+   用户命中 = urban water ✓ / stormwater ✓ / modelling ≈ / statistics ≈  (4 个 hits)
+   match_rate = 4/7 = 57%   ← 这是 用户 "能贡献什么" 的实际度量
 ```
 
 ### LLM 综合判 A/B/C（按 phd-eval-criteria.md）

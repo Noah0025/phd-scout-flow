@@ -2,7 +2,7 @@
 
 用于 `/phd-scout` 给候选机会打 A/B/C 评级。规则服务于初筛，不代表录取概率。
 
-⚠️ **评估视角**：项目角度 — 看"项目需要的能力 / LNZ 能覆盖多少"，不是"LNZ 库 / 项目命中"。
+⚠️ **评估视角**：项目角度 — 看"项目需要的能力 / 用户能覆盖多少"，不是"用户库 / 项目命中"。
 
 LLM 综合判，不靠硬数学阈值。
 
@@ -12,7 +12,7 @@ LLM 综合判，不靠硬数学阈值。
 
 ```
 job_signals = LLM 从 PhD 完整描述抽取的关键能力点 (3-8 个)
-covered_signals = LNZ 关键词库（含 A/B 级 + search_anchor/weight_only）覆盖的 signal 数
+covered_signals = 用户关键词库（含 A/B 级 + search_anchor/weight_only）覆盖的 signal 数
 match_rate = covered_signals / |job_signals|
 ```
 

@@ -14,7 +14,7 @@ input_sources:
     - "[/absolute/path/to/cv_or_transcript]"
 
 matching:
-  # 评估视角：从"项目角度"看 LNZ 能贡献什么（不用 LNZ 关键词库做分母）。
+  # 评估视角：从"项目角度"看 用户能贡献什么（不用 用户关键词库做分母）。
   # match_rate = covered_job_signals / |job_signals|（LLM 在 Step 6 算）
   # threshold 是给 LLM 的"参考线"，不是硬过滤——见 phd-eval-criteria.md 综合判。
   threshold_hint: 0.5       # match_rate 参考线，仅作 LLM 评级 hint
