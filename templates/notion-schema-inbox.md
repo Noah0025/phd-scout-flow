@@ -35,6 +35,51 @@ Notion Inbox 是搜索结果的主界面。字段名建议保持不变，方便 
 
 ---
 
+## 完整 property shape JSON 示例（半自动建 DB 用）
+
+`/phd-scout-init` Step 7.3 调 `notion-create-database` 时，properties 完整 schema：
+
+```json
+{
+  "Title":     { "title": {} },
+  "机构":      { "rich_text": {} },
+  "城市国家":  { "rich_text": {} },
+  "形态":      { "select": { "options": [
+    {"name": "project_position"},
+    {"name": "pi_open_call"},
+    {"name": "pi_cold_email"},
+    {"name": "cdt_dtp"},
+    {"name": "msca_dn"},
+    {"name": "outbound_scholarship"},
+    {"name": "industrial_phd"}
+  ]}},
+  "链接":      { "url": {} },
+  "截止":      { "date": {} },
+  "PI":        { "rich_text": {} },
+  "资助":      { "select": { "options": [
+    {"name": "Funded (Stipend)"},
+    {"name": "Funded (Salary)"},
+    {"name": "Self-funded"},
+    {"name": "Industrial"},
+    {"name": "未明"}
+  ]}},
+  "命中关键词": { "multi_select": { "options": [] }},
+  "匹配度":    { "rich_text": {} },
+  "优先级":    { "select": { "options": [
+    {"name": "A"}, {"name": "B"}, {"name": "C"}
+  ]}},
+  "Feedback":  { "select": { "options": [
+    {"name": "要"}, {"name": "不要"}, {"name": "观望"}
+  ]}},
+  "备注":      { "rich_text": {} },
+  "创建日期":  { "date": {} }
+}
+```
+
+→ AI 调 MCP 时直接套这个 shape。事后想加字段时，用 `notion-update-data-source`（不是 `notion-update-database`），更新 schema 而非 database metadata。
+
+---
+
 ## PI Cold Email 形态的字段处理
 
 `pi_cold_email` 候选没有 funding / deadline / 岗位标题等字段。在同一 Inbox DB 内异质填法：

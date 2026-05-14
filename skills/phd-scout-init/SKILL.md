@@ -121,8 +121,8 @@ fi
 
 ### AI 判 seed_type 规则
 
-- **search_anchor**：问题域 / 应用领域 / 学科方向（如 "urban water" / "stormwater" / "wastewater" / "climate adaptation" / "LCA" / "membrane separation"）—— PhD 招聘描述里高频出现的词
-- **weight_only**：方法 / 模型 / 工具（如 "GWR" / "Random Forest" / "Sensitivity Analysis" / "Spatial Durbin Model"）—— 学术论文出现多，PhD 招聘描述少有
+- **search_anchor**：问题域 / 应用领域 / 学科方向（如 [problem_domain_example] / [applied_domain_example] / [problem_domain_example_2] / [applied_domain_example_2] / [applied_method_1] / [applied_method_2]）—— PhD 招聘描述里高频出现的词
+- **weight_only**：方法 / 模型 / 工具（如 [method_abbreviation] / [ml_method] / [analysis_method] / [model_name]）—— 学术论文出现多，PhD 招聘描述少有
 
 不确定时默认 search_anchor。让用户调整。
 
@@ -191,7 +191,7 @@ fi
 
 **偏好源（「偏好源」项）问法**：
 
-> "有没有特别想盯紧的机构、站点或区域？例如 'UFZ', 'ETH Zurich', 'Germany'。
+> "有没有特别想盯紧的机构、站点或区域？例如 '[Institution A]', '[Institution B]', '[Country]'。
 > 留空也行——下一步 (Step 4.5) AI 会再推一批候选让你勾。"
 
 收集为三类（用户可任填一项或全填）：
@@ -225,17 +225,13 @@ fi
 
 ### 候选 2 — 学科聚合站（sites）
 
-5-10 个该方向特有的招聘聚合平台（不是 EURAXESS / FindAPhD 这种通用主源）。例：
-
-- 环境工程 → 学科性 job board / 学会招聘页
-- 计算机 → 学科 mailing list mirror / 实验室聚合站
-- 生命科学 → field-specific careers
+5-10 个该方向特有的招聘聚合平台（不是 EURAXESS / FindAPhD 这种通用主源）。AI 根据用户问卷确认的方向，实时推荐对应领域的学科性 job board / 学会招聘页 / mailing list mirror 等。
 
 每条带：domain + 推荐理由。
 
 ### 候选 3 — 区域聚合站（regions_focus）
 
-3-8 个区域性聚合站，覆盖用户问卷里 `region.include` 的范围（例德国 → Helmholtz portal / GerWin / Academics.de）。
+3-8 个区域性聚合站，覆盖用户问卷里 `region.include` 的范围。AI 根据用户选的目标国家/区域，实时推荐对应的区域学术招聘门户。
 
 ### 展示给用户（默认勾选 top-N，用户"取消"而非"全勾"）
 
@@ -251,11 +247,11 @@ fi
 
 ```
 机构（默认勾选 top-5）：
-[x] 1. UFZ — [理由]
-[x] 2. ETH Zurich — [理由]
-[x] 3. TU Delft — [理由]
-[x] 4. EAWAG — [理由]
-[x] 5. KIT — [理由]
+[x] 1. [Institution A] — [理由]
+[x] 2. [Institution B] — [理由]
+[x] 3. [Institution C] — [理由]
+[x] 4. [Institution D] — [理由]
+[x] 5. [Institution E] — [理由]
 [ ] 6. ... (折叠，回复"显示更多"查看)
 ```
 
@@ -263,7 +259,7 @@ fi
 
 - 直接回复"OK"或"确认" → 接受默认 10 项
 - "取消 1, 3" / "加 6, 9" → 调整默认
-- "全选" → 全部 27 项都加（如本次 dogfood）
+- "全选" → 全部候选都加
 - "全部不选" → preferred_sources 留空，fallback 到默认主源
 
 **AI 不要替用户最终决定**，但**给一个合理的默认起点**，减少决策疲劳。
@@ -274,9 +270,9 @@ fi
 
 根据问卷结果处理关键词：
 
-- `A 级`：硬性关键词池，搜索结果至少命中 1 个。
-- `B 级`：支撑关键词池，用于 60% 匹配。
-- `C 级`：排除词或降权词，不进入正向搜索（init 允许主动标，也可由 optimize 反馈循环产生）。
+- `A 级`：优先级最高（搜索时优先用 + 评估时加权大）。**不是** hard hit 门槛。
+- `B 级`：优先级次之（A 失败时补搜 + 评估支撑分）。
+- `C 级`：硬排除（命中 C 级整体排除）。init 允许主动标，也可由 optimize 反馈循环产生。
 
 若用户把某个 L0 标为 `C`，其 L1/L2 默认也排除，除非用户明确保留其中某个词。
 
@@ -294,7 +290,7 @@ fi
 - profile version
 - Notion Inbox database id 占位
 - 配置问卷结果（含可选「偏好源」项 `preferred_sources`）
-- match threshold
+- matching.threshold_hint
 - enabled opportunity types（默认仅 focus 2 类，用户在问卷里勾选其他）
 - opportunity_types.priority（focus / normal / low 三层）
 - funding rule

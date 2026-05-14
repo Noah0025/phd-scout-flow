@@ -202,7 +202,7 @@ Check local files:
 ```bash
 test -s "$HOME/.phd-scout/profile.yaml"
 test -s "$HOME/.phd-scout/keywords.md"
-grep -q "threshold:" "$HOME/.phd-scout/profile.yaml"
+grep -q "threshold_hint:" "$HOME/.phd-scout/profile.yaml"
 grep -q "^## A" "$HOME/.phd-scout/keywords.md" && grep -q "^## B" "$HOME/.phd-scout/keywords.md" && grep -q "^## C" "$HOME/.phd-scout/keywords.md"
 ```
 

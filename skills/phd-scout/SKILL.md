@@ -28,7 +28,7 @@ TEMPLATES  = $SCOUT_HOME/templates
 3. 检查必需字段：
    - Notion Inbox database id
    - enabled opportunity types + priority (focus / normal / low)
-   - match threshold
+   - matching.threshold_hint
    - funding rule
    - region rule
    - language rule
@@ -39,7 +39,7 @@ TEMPLATES  = $SCOUT_HOME/templates
    - `institutions` / `sites` / `regions_focus` 任一非空 → 启用追加搜索（Step 3.5）
    - 全部为空 → 跳过追加搜索，只走默认主源
 5. 读取 `search` 预算字段：
-   - `total_queries_per_scout`、`queries_per_type`、`preferred_source_queries`、`probe_queries`、`results_per_query`、`query_repeat_cooldown_days`、`append_year_filter`
+   - `total_queries_per_scout`、`queries_per_type`、`preferred_source_total_per_type`、`probe_queries`、`results_per_query`、`query_repeat_cooldown_days`、`append_year_filter`
    - 不存在则退回 SKILL 内置默认（见下）
 
 缺失 `profile.yaml` 或 `keywords.md` 时，停止并提示先运行 `/phd-scout-init`。
@@ -72,7 +72,7 @@ TEMPLATES  = $SCOUT_HOME/templates
 
 - **主搜 query 只用 `seed_type: search_anchor` 的关键词**——方法类（`weight_only`）不进搜索 query，只在 Step 4 评估时加权
 - **所有主搜 query 必须带 `site:` 过滤**到默认主源（通用 Google 找学术职位质量低）
-- **缩写关键词用 `"full name" OR ABBR` 组合**（防 Google 忽略缩写如 "GWR"）
+- **缩写关键词用 `"full name" OR ABBR` 组合**（防 Google 忽略缩写如 [method_abbreviation]）
 
 ### 形态搜索词模板（占位符 `[anchor]` = 一个 A 级 search_anchor 关键词）
 
@@ -155,7 +155,7 @@ focus 形态 B: 6
 - `weight_only` 关键词（方法类）**绝不进搜索 query**（避免噪音）
 - B 级搜索补搜也只用 search_anchor 类
 - 若只有 1 个 A anchor → 跳过轮 3，节省预算
-- **缩写处理**：若 anchor 是缩写（如 "GWR" / "LCA"），query 自动改为 `"全称" OR 缩写` 组合，例 "geographically weighted regression" OR GWR
+- **缩写处理**：若 anchor 是缩写（如 `[method_abbreviation]`），query 自动改为 `"全称" OR 缩写` 组合，例 `"[full_form]" OR [abbreviation]`
 
 ### 时效性
 
@@ -320,7 +320,7 @@ B_hits: 候选描述里命中的 B 级关键词列表
 
 某些平台（如 EURAXESS）的 URL/ID 可能复用或失效，验链 fetched 的页面**可能不是搜索结果显示的那条**。验链时必须比对：
 
-1. fetched 页面的 title 关键词 是否包含搜索摘要的 title 关键词（核心专业词，如 "urban water" / "stormwater"）
+1. fetched 页面的 title 关键词 是否包含搜索摘要的 title 关键词（核心专业词，如 [problem_domain_example] / [applied_domain_example]）
 2. fetched 页面的 institution 是否与搜索摘要的 institution 一致
 
 不一致 → **重搜本条候选**（用更精确的 query：`"title 关键词" institution`）；重搜失败 → 标 `link_unverified` 并降级到 B 级。
@@ -357,14 +357,13 @@ B_hits: 候选描述里命中的 B 级关键词列表
    - 申请条件中的硬技能要求
    - PI 课题组的近期主题（如能识别）
 
-2. 看用户 的关键词库（A 级 + B 级，含 weight_only 方法类）覆盖了多少个 signal：
+2. 看用户的关键词库（A 级 + B 级，含 weight_only 方法类）覆盖了多少个 signal：
    match_rate = covered_signals / |job_signals|
 
-3. 例：[example_phd_title]
-   job_signals = [urban water, stormwater quality, sampling, modelling,
-                  sustainable management, statistics, MSc engineering]  (7 个)
-   用户命中 = urban water ✓ / stormwater ✓ / modelling ≈ / statistics ≈  (4 个 hits)
-   match_rate = 4/7 = 57%   ← 这是 用户 "能贡献什么" 的实际度量
+3. 通用示例（数字仅作语义说明）：
+   job_signals = [signal_1, signal_2, signal_3, signal_4, signal_5, signal_6, signal_7]  (7 个)
+   用户命中 = [signal_1] ✓ / [signal_2] ✓ / [signal_4] ≈ / [signal_6] ≈  (4 个 hits)
+   match_rate = 4/7 = 57%   ← 用户"能贡献什么"的实际度量
 ```
 
 ### LLM 综合判 A/B/C（按 phd-eval-criteria.md）
@@ -457,7 +456,7 @@ LLM 用语义识别处理常见情况：
 
 1. 非必需字段（机构 / 城市国家 / PI / 资助 / 命中关键词 / 匹配分 / 备注 等）找不到对应 DB 字段 → 跳过该字段写入，警告但不中止
 2. **必需字段缺失**（Title / 链接 / 形态 / 优先级 / Feedback）→ **不要直接中止**，先尝试自动补建：
-   - 调当前客户端暴露的 Notion MCP **update-database** 工具（常见名 `notion-update-database`），按 `templates/notion-schema-inbox.md` 的 spec 加回这个 property
+   - 调当前客户端暴露的 Notion MCP **update-data-source** 工具（常见名 `notion-update-data-source`；注意：补字段是更新 data source schema，不是 database metadata），按 `templates/notion-schema-inbox.md` 的 spec 加回这个 property
    - 补建成功 → 继续写入
    - 补建失败（权限不足 / API 错误）→ 这条候选写本地日志 + 终端报告标红，提示用户去 DB 加回字段
 

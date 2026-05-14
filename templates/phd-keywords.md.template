@@ -17,8 +17,8 @@ Last updated: YYYY-MM-DD
 
 **seed_type 区分**（A / B 级关键词都有此属性）：
 
-- `search_anchor`：问题域类（如 "urban water" / "wastewater"）—— **用作搜索主键** + 评估加权
-- `weight_only`：方法类（如 "GWR" / "Random Forest"）—— **不进搜索 query**，只在评估时加权（避免搜索结果跑偏）
+- `search_anchor`：问题域类（如 [problem_domain_example] / [problem_domain_example_2]）—— **用作搜索主键** + 评估加权
+- `weight_only`：方法类（如 [method_abbreviation] / [ml_method]）—— **不进搜索 query**，只在评估时加权（避免搜索结果跑偏）
 
 ---
 

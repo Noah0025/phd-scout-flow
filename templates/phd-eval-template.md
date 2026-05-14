@@ -21,6 +21,10 @@ PI/课题组：[pi_or_group or unknown]
 
 为何推荐：[因为命中核心方向 + 资金/时间/形态符合，所以值得进入人工初筛。]
 
+链接验证：[verified / link_unverified]
+- verified — 原链接 fetched 内容与搜索摘要 cross-check 通过
+- link_unverified — fetch 失败或内容与搜索摘要不对应（最高 B 级）
+
 不确定信息：[列出本次评估中信息缺失或需要人工核实的项；若无，写"无"]
 
 ---

@@ -245,7 +245,7 @@ company PhD position [a_level_keyword]
 |---|---|---|
 | `total_queries_per_scout` | 30 | 一次 scout 总查询数上限 |
 | `queries_per_type` | 3 | 每形态主查询数（3 轮组合） |
-| `preferred_source_queries` | 3 | 每形态偏好源追加查询数 |
+| `preferred_source_total_per_type` | 3 | 每形态偏好源追加查询数上限 |
 | `probe_queries` | 1 | 探测搜索固定 1 次 |
 | `results_per_query` | 20 | 每查询取前 N 条 |
 

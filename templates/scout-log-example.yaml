@@ -6,7 +6,7 @@ run:
   date: "YYYY-MM-DD"
   profile: "~/.phd-scout/profile.yaml"
   keywords: "~/.phd-scout/keywords.md"
-  match_threshold: 0.6
+  threshold_hint: 0.5   # 评估参考线（非硬过滤），与 profile.matching.threshold_hint 对应
 
 keywords_used:
   a_level:
@@ -39,10 +39,12 @@ candidates:
     missing_keywords:
       b_level:
         - "[related_subproblem]"
-    score:
-      hard: "1/2"
-      support: "1/2"
-      total_percent: 67
+    evaluation:
+      # 项目角度评估（Step 6）— job_signals 由 LLM 从 PhD 描述抽取
+      job_signals: ["[signal_1]", "[signal_2]", "[signal_3]", "[signal_4]"]
+      covered_signals: ["[signal_1]", "[signal_2]"]   # 用户关键词库覆盖到的
+      match_rate: 0.50
+      link_verified: true   # Step 5 cross-check 结果：true / "link_unverified"
     decision:
       status: "written_to_notion"
       priority: "B"
