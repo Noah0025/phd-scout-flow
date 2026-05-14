@@ -187,8 +187,8 @@ PhD [a_level_keyword] [b_level_keyword] funded 2026 OR 2027
 **规则**：
 
 - 复杂 query 返回 **0 条** → 自动降级一次，去掉 `site:` 过滤 + 去掉引号 + 去 OR 改空格，重试 1 次
-- 例：`site:euraxess.ec.europa.eu PhD "urban water" funded 2026 OR 2027`
-       → 简化为 `EURAXESS PhD urban water funded 2026`
+- 例：`site:euraxess.ec.europa.eu PhD "[anchor phrase]" funded 2026 OR 2027`
+       → 简化为 `EURAXESS PhD [anchor] funded 2026`
 - 简化后仍 0 条 → 该 query 计为失败，继续下一 query（不再重试）
 - 简化回退**消耗主预算**但**不算 cooldown**（重试视为同一原查询）
 
